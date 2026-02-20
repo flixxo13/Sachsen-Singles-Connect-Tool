@@ -1,5 +1,3 @@
-<!-- https://script.google.com/macros/s/AKfycbxW9WEghw-lKYybRKyRcETSklbF1-EotGrutg3f4yT_DS6T6hotMwT0JlIUTZl-F4MQ/exec -->
-<!-- admin-key-2026-ssc -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -576,19 +574,18 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
 //  ⚙️  KONFIGURATION — Hier deine zwei Werte eintragen!
 // ════════════════════════════════════════════════════════════
 const CONFIG = {
-  // 👇 Nach dem Deployen des Google Apps Scripts hier die URL einfügen:
-  API_URL: "HIER_DEINE_GOOGLE_APPS_SCRIPT_URL_EINTRAGEN",
+  // ✅ Google Apps Script Web-App URL:
+  API_URL: "https://script.google.com/macros/s/AKfycbxW9WEghw-lKYybRKyRcETSklbF1-EotGrutg3f4yT_DS6T6hotMwT0JlIUTZl-F4MQ/exec",
 
-  // 👇 Den API_KEY aus den Script-Properties hier eintragen:
-  API_KEY: "HIER_DEINEN_API_KEY_EINTRAGEN",
+  // ✅ API-Key (muss mit Script-Property API_KEY übereinstimmen):
+  API_KEY: "admin-key-2026-ssc",
 
   // Admin-PIN (NUR für lokalen Demo-Modus — im echten Betrieb wird der PIN
   // im Google Apps Script als Property gespeichert und geprüft):
   ADMIN_PIN: "1234",
 
-  // Demo-Modus: true = App läuft ohne Backend (für Tests)
-  // Auf false setzen sobald das Google Apps Script deployed ist!
-  DEMO_MODE: true,
+  // ✅ Demo-Modus deaktiviert — App nutzt das echte Backend!
+  DEMO_MODE: false,
 };
 // ════════════════════════════════════════════════════════════
 
