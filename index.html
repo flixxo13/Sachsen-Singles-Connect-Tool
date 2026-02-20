@@ -586,6 +586,9 @@ const CONFIG = {
 
   // ✅ Demo-Modus deaktiviert — App nutzt das echte Backend!
   DEMO_MODE: false,
+
+  // 🐛 Debug: true = API-Fehler werden als Popup angezeigt (zum Testen)
+  DEBUG: true,
 };
 // ════════════════════════════════════════════════════════════
 
@@ -593,23 +596,36 @@ const CONFIG = {
 const API = {
 
   async get(action, params = {}) {
-    if (CONFIG.DEMO_MODE) return null; // Demo: kein echter Call
-    const url = new URL(CONFIG.API_URL);
-    url.searchParams.set("action", action);
-    url.searchParams.set("key", CONFIG.API_KEY);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res = await fetch(url.toString());
-    return res.json();
+    if (CONFIG.DEMO_MODE) return null;
+    try {
+      const url = new URL(CONFIG.API_URL);
+      url.searchParams.set("action", action);
+      url.searchParams.set("key", CONFIG.API_KEY);
+      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+      const res = await fetch(url.toString());
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    } catch(e) {
+      if (CONFIG.DEBUG) alert("🐛 API GET Fehler [" + action + "]:\n" + e.message);
+      return { success: false, error: e.message };
+    }
   },
 
   async post(action, body = {}) {
     if (CONFIG.DEMO_MODE) return null;
-    const res = await fetch(CONFIG.API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, api_key: CONFIG.API_KEY, ...body }),
-    });
-    return res.json();
+    try {
+      const res = await fetch(CONFIG.API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, api_key: CONFIG.API_KEY, ...body }),
+        mode: "cors",
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    } catch(e) {
+      if (CONFIG.DEBUG) alert("🐛 API POST Fehler [" + action + "]:\n" + e.message + "\n\nMögliche Ursachen:\n- CORS-Problem mit Google Apps Script\n- Script nicht korrekt deployed\n- API_KEY stimmt nicht überein");
+      return { success: false, error: e.message };
+    }
   },
 
   // SHA-256 des Wochencodes lokal berechnen (Code geht NIE übers Netz!)
@@ -862,7 +878,8 @@ function app() {
               this.err += ' Dein Bearbeitungslink: ' + this.magic;
             }
           } else {
-            this.err = res?.error || 'Ein Fehler ist aufgetreten. Bitte versuche es erneut.';
+            this.err = res?.error || 'Fehler beim Speichern. Bitte versuche es erneut.';
+            if (CONFIG.DEBUG && res) this.err += ' [Code: ' + (res.code||'?') + ']';
           }
         }
       } finally {
@@ -929,6 +946,7 @@ function app() {
 
     // ── ADMIN LOGIN ──
     checkAdmin() {
+      if (CONFIG.DEBUG) console.log("Checking PIN:", this.adminPin, "vs", CONFIG.ADMIN_PIN);
       if (this.adminPin === CONFIG.ADMIN_PIN) {
         this.isAdmin = true;
         localStorage.setItem('ssc_admin', '1');
