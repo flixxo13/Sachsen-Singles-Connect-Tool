@@ -191,7 +191,7 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
         style="background:#2a2a2a;border-color:#444;color:#fff;"/>
     </div>
     <p x-show="adminErr" style="color:var(--red);font-size:.8rem;margin-bottom:.7rem;">❌ Falscher PIN</p>
-    <button class="btn btn-gold" @click="checkAdmin()">Einloggen →</button>
+    <button class="btn btn-gold" @click="checkAdmin()" :disabled="loading">Einloggen →</button>
     <button class="btn btn-soft" @click="view='lock'" style="margin-top:.6rem;">← Zurück</button>
   </div>
 </div>
@@ -628,6 +628,12 @@ const API = {
     }
   },
 
+  // Admin-Login: PIN wird ans Backend geschickt — niemals lokal geprüft!
+  async adminLogin(pin) {
+    if (CONFIG.DEMO_MODE) return { success: pin === "1234" };
+    return await this.post("adminlogin", { pin });
+  },
+
   // SHA-256 des Wochencodes lokal berechnen (Code geht NIE übers Netz!)
   async hashCode(plain) {
     const buf = await crypto.subtle.digest(
@@ -945,19 +951,26 @@ function app() {
     },
 
     // ── ADMIN LOGIN ──
-    checkAdmin() {
-      if (CONFIG.DEBUG) console.log("Checking PIN:", this.adminPin, "vs", CONFIG.ADMIN_PIN);
-      if (this.adminPin === CONFIG.ADMIN_PIN) {
-        this.isAdmin = true;
-        localStorage.setItem('ssc_admin', '1');
-        this.adminQueue = [...DEMO_QUEUE];
-        this.allAdminProfiles = [...DEMO_PROFILES].map(p=>({...p,status:'Aktiv',timestamp:new Date().toISOString()}));
-        this.currentWeekCode = 'SACHSEN';
-        this.view = 'admin';
-        this.adminTab = 'queue';
-      } else {
-        this.adminErr = true;
-        this.adminPin = '';
+    async checkAdmin() {
+      if (!this.adminPin.trim()) return;
+      this.loading = true;
+      this.loadingMsg = 'PIN wird geprüft…';
+      try {
+        const res = await API.adminLogin(this.adminPin);
+        if (res?.success) {
+          this.isAdmin = true;
+          localStorage.setItem('ssc_admin', '1');
+          this.adminQueue = [...DEMO_QUEUE];
+          this.allAdminProfiles = [...DEMO_PROFILES].map(p=>({...p,status:'Aktiv',timestamp:new Date().toISOString()}));
+          this.currentWeekCode = 'SACHSEN';
+          this.view = 'admin';
+          this.adminTab = 'queue';
+        } else {
+          this.adminErr = true;
+          this.adminPin = '';
+        }
+      } finally {
+        this.loading = false;
       }
     },
 
