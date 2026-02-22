@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sachsen Singles Connect</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --g9:#004d25;--g7:#00692f;--g:#00833e;--g4:#2db567;--g1:#d4eddf;--g0:#eef8f2;
+  --gold:#c8a400;--gold0:#fbf6dc;
+  --gray9:#141414;--gray7:#3d3d3d;--gray5:#767676;--gray3:#c8c8c8;--gray1:#f2f2f2;--gray0:#f8f8f8;
+  --red:#dc2626;--red0:#fff5f5;--red1:#fecaca;
+  --shadow:0 4px 20px rgba(0,100,50,.12);--shadowlg:0 12px 40px rgba(0,100,50,.18);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--gray0);color:var(--gray9);min-height:100vh;overflow-x:hidden;}
+[x-cloak]{display:none!important;}
+.serif{font-family:'Cormorant Garant',serif;}
+.lock{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;background:#00692f url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 3L37 20L20 37L3 20Z' fill='none' stroke='rgba(255,255,255,.07)' stroke-width='1.2'/%3E%3C/svg%3E") 0 0/40px 40px;}
+.lock-card{background:#fff;border-radius:22px;padding:2.2rem 1.8rem;width:100%;max-width:360px;box-shadow:var(--shadowlg);position:relative;overflow:hidden;}
+.lock-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--g),var(--gold));}
+.lock-icon{width:68px;height:68px;background:var(--g);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;font-size:1.9rem;box-shadow:0 8px 24px rgba(0,131,62,.3);}
+.code-input{width:100%;font-size:1.6rem;font-weight:700;letter-spacing:.35em;text-align:center;background:var(--gray0);border:2px solid var(--gray3);border-radius:12px;padding:.9rem;outline:none;transition:.2s;font-family:'DM Sans',sans-serif;color:var(--gray9);}
+.code-input:focus{border-color:var(--g);background:var(--g0);box-shadow:0 0 0 4px rgba(0,131,62,.1);}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.shake{animation:shake .35s ease;}
+.btn{width:100%;border:none;border-radius:12px;padding:.85rem 1.2rem;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:.45rem;}
+.btn-green{background:var(--g);color:#fff;} .btn-green:hover{background:var(--g7);transform:translateY(-1px);}
+.btn-gold{background:var(--gold);color:#1a1100;} .btn-gold:hover{background:#b89400;}
+.btn-soft{background:var(--g0);color:var(--g7);border:2px solid var(--g1);} .btn-soft:hover{background:var(--g1);}
+.btn-sm{padding:.5rem .9rem;font-size:.82rem;border-radius:10px;width:auto;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-dark{background:var(--gray9);color:#fff;}
+.nav{position:sticky;top:0;z-index:100;background:#fff;border-bottom:1px solid var(--gray1);box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.nav-inner{max-width:700px;margin:0 auto;padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:.55rem;}
+.logo-box{width:34px;height:34px;background:var(--g);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;}
+.logo-text{font-family:'Cormorant Garant',serif;font-size:1.25rem;font-weight:700;color:var(--g9);line-height:1.1;}
+.logo-sub{font-family:'DM Sans',sans-serif;font-size:.6rem;font-weight:600;color:var(--g4);letter-spacing:.08em;}
+.filters{background:#fff;border-bottom:1px solid var(--gray1);padding:.75rem 1.2rem;}
+.filter-row{max-width:700px;margin:0 auto;display:flex;gap:.55rem;overflow-x:auto;scrollbar-width:none;align-items:center;}
+.filter-row::-webkit-scrollbar{display:none;}
+select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radius:9px;padding:.4rem .75rem;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;color:var(--gray7);cursor:pointer;outline:none;flex-shrink:0;}
+.chip{background:var(--gray0);border:1.5px solid var(--gray3);border-radius:9px;padding:.4rem .85rem;font-size:.82rem;font-weight:500;color:var(--gray7);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:.15s;}
+.chip.on{background:var(--g0);border-color:var(--g);color:var(--g7);}
+.gallery{max-width:700px;margin:0 auto;padding:1rem 1.2rem;display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;}
+@media(min-width:500px){.gallery{grid-template-columns:repeat(3,1fr);}}
+.card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:.22s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadowlg);}
+.card-img{position:relative;aspect-ratio:3/4;overflow:hidden;}
+.card-avatar{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garant',serif;font-size:2.8rem;font-weight:700;}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:.4s;} .card:hover .card-img img{transform:scale(1.05);}
+.badge-v{position:absolute;top:7px;right:7px;background:rgba(0,131,62,.9);color:#fff;font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:20px;}
+.badge-n{position:absolute;top:7px;left:7px;background:rgba(200,164,0,.95);color:#1a1100;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;}
+.card-body{padding:.7rem .8rem .8rem;}
+.card-name{font-family:'Cormorant Garant',serif;font-size:1.1rem;font-weight:700;line-height:1.1;margin-bottom:2px;}
+.card-meta{font-size:.75rem;color:var(--gray5);margin-bottom:.55rem;}
+.btn-connect{width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:.5rem;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:.2s;}
+.btn-connect:hover{background:var(--g7);}
+.fab{position:fixed;bottom:1.4rem;right:1.4rem;background:var(--g);color:#fff;border:none;border-radius:16px;padding:.9rem 1.3rem;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;box-shadow:0 8px 28px rgba(0,131,62,.4);transition:.2s;display:flex;align-items:center;gap:.45rem;z-index:90;}
+.fab:hover{background:var(--g7);transform:translateY(-2px);}
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.sheet{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:700px;max-height:92vh;overflow-y:auto;padding:1.4rem 1.4rem 2.5rem;}
+.handle{width:38px;height:4px;background:var(--gray3);border-radius:2px;margin:0 auto 1.3rem;}
+.sheet::-webkit-scrollbar{width:3px;} .sheet::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:2px;}
+.flabel{font-size:.83rem;font-weight:600;color:var(--gray7);margin-bottom:.3rem;display:block;}
+.finput{width:100%;background:var(--gray0);border:2px solid var(--gray3);border-radius:11px;padding:.7rem .9rem;font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--gray9);outline:none;transition:.2s;appearance:none;}
+.finput:focus{border-color:var(--g);background:var(--g0);box-shadow:0 0 0 3px rgba(0,131,62,.1);}
+.fgroup{margin-bottom:1rem;}
+.steps{display:flex;gap:.4rem;justify-content:center;margin-bottom:1.3rem;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gray3);transition:.3s;} .dot.on{background:var(--g);width:22px;border-radius:4px;}
+.consent-box{display:flex;align-items:flex-start;gap:.7rem;background:var(--g0);border:1.5px solid var(--g1);border-radius:12px;padding:.9rem;}
+.consent-box input[type=checkbox]{width:18px;height:18px;accent-color:var(--g);flex-shrink:0;margin-top:2px;cursor:pointer;}
+.magic-box{background:var(--gray0);border:2px dashed var(--g4);border-radius:11px;padding:.9rem;font-family:monospace;font-size:.75rem;color:var(--g7);word-break:break-all;margin:.9rem 0;}
+.success-box{background:linear-gradient(135deg,var(--g0),var(--gold0));border:2px solid var(--g1);border-radius:15px;padding:1.3rem;text-align:center;margin-bottom:1rem;}
+.tag{display:inline-flex;align-items:center;gap:.2rem;background:var(--g0);color:var(--g7);border:1px solid var(--g1);border-radius:6px;padding:2px 8px;font-size:.7rem;font-weight:600;}
+.my-banner{max-width:700px;margin:.9rem auto 0;padding:0 1.2rem;}
+.banner-inner{background:linear-gradient(135deg,var(--g9),var(--g7));border-radius:14px;padding:.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;color:#fff;}
+.sec-title{font-family:'Cormorant Garant',serif;font-size:1.05rem;font-weight:700;color:var(--gray7);max-width:700px;margin:.8rem auto .2rem;padding:0 1.2rem;display:flex;align-items:center;gap:.5rem;}
+.count{background:var(--g0);color:var(--g7);font-size:.75rem;font-weight:600;padding:1px 9px;border-radius:20px;font-family:'DM Sans',sans-serif;}
+.err{color:var(--red);font-size:.8rem;margin-bottom:.65rem;}
+.detail-avatar{width:100%;height:200px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garant',serif;font-size:4.5rem;font-weight:700;margin-bottom:1.1rem;}
+.detail-img{width:100%;height:220px;object-fit:cover;border-radius:14px;margin-bottom:1.1rem;}
+.bio-box{background:var(--gray0);border-radius:11px;padding:.9rem;margin:.7rem 0;}
+.bio-box .bio-lbl{font-size:.75rem;font-weight:600;color:var(--gray5);margin-bottom:.3rem;}
+/* Admin */
+.admin-nav{background:var(--gray9);color:#fff;position:sticky;top:0;z-index:100;}
+.admin-nav-inner{max-width:700px;margin:0 auto;padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;}
+.admin-tab-row{background:var(--gray9);border-bottom:2px solid #333;padding:0 1.2rem;}
+.admin-tab-inner{max-width:700px;margin:0 auto;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;}
+.admin-tab-inner::-webkit-scrollbar{display:none;}
+.atab{padding:.7rem 1rem;font-size:.82rem;font-weight:600;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:.15s;}
+.atab.on{color:#fff;border-bottom-color:var(--gold);}
+.admin-body{max-width:700px;margin:0 auto;padding:1.2rem;}
+.q-card{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:1rem 1.1rem;margin-bottom:.9rem;border-left:4px solid var(--gold);}
+.q-card.gesperrt{border-left-color:var(--red);} .q-card.aktiv{border-left-color:var(--g);}
+.q-name{font-family:'Cormorant Garant',serif;font-size:1.2rem;font-weight:700;}
+.q-meta{font-size:.78rem;color:var(--gray5);margin:.2rem 0 .75rem;}
+.q-actions{display:flex;gap:.5rem;flex-wrap:wrap;}
+.q-btn{padding:.45rem .85rem;font-size:.78rem;font-weight:600;border:none;border-radius:9px;cursor:pointer;transition:.15s;font-family:'DM Sans',sans-serif;}
+.q-btn-ok{background:var(--g0);color:var(--g7);} .q-btn-ok:hover{background:var(--g1);}
+.q-btn-ban{background:var(--red0);color:var(--red);} .q-btn-ban:hover{background:var(--red1);}
+.q-btn-del{background:var(--gray1);color:var(--gray7);}
+.q-btn-fb{background:var(--g);color:#fff;} .q-btn-fb:hover{background:var(--g7);}
+.q-btn-un{background:#fff3cd;color:#856404;}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-bottom:1.3rem;}
+@media(min-width:500px){.stat-grid{grid-template-columns:repeat(4,1fr);}}
+.stat-card{background:#fff;border-radius:13px;padding:.9rem;box-shadow:var(--shadow);text-align:center;}
+.stat-num{font-family:'Cormorant Garant',serif;font-size:2rem;font-weight:700;}
+.stat-lbl{font-size:.72rem;color:var(--gray5);margin-top:.1rem;}
+.code-box{background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:1.2rem;}
+.current-code{background:var(--gray9);color:var(--gold);font-family:monospace;font-size:1.1rem;font-weight:700;letter-spacing:.15em;border-radius:10px;padding:.7rem 1rem;margin:.6rem 0;text-align:center;}
+.sbadge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.s-neu{background:#fff3cd;color:#664d03;} .s-aktiv{background:var(--g0);color:var(--g7);}
+.s-gesperrt{background:var(--red0);color:var(--red);} .s-inaktiv{background:var(--gray1);color:var(--gray5);}
+.info-row{display:flex;justify-content:space-between;font-size:.82rem;padding:.3rem 0;border-bottom:1px solid var(--gray1);align-items:center;}
+.info-row:last-child{border:none;}
+.admin-pin-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:var(--gray9);}
+.admin-pin-card{background:#1a1a1a;border-radius:20px;padding:2rem 1.8rem;width:100%;max-width:340px;border:1px solid #333;}
+/* Loading spinner */
+.spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner-green{border-color:rgba(0,131,62,.2);border-top-color:var(--g);}
+/* ── Upload-Zone ── */
+.upload-zone{background:var(--g0);border:2px dashed var(--g4);border-radius:13px;
+  padding:1.4rem;text-align:center;cursor:pointer;transition:.2s;}
+.upload-zone:hover,.upload-drag{background:var(--g1);border-color:var(--g);}
+/* Toast */
+.toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--gray9);color:#fff;padding:.75rem 1.4rem;border-radius:12px;font-size:.85rem;font-weight:600;z-index:999;box-shadow:var(--shadowlg);white-space:nowrap;}
+@keyframes fadeUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.toast{animation:fadeUp .3s ease;}
+/* Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.loading-card{background:#fff;border-radius:16px;padding:1.5rem 2rem;text-align:center;box-shadow:var(--shadowlg);}
+@keyframes cardFadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card{animation:cardFadeUp .4s ease both;}
+.card:nth-child(1){animation-delay:.05s} .card:nth-child(2){animation-delay:.10s}
+.card:nth-child(3){animation-delay:.15s} .card:nth-child(4){animation-delay:.20s}
+.card:nth-child(5){animation-delay:.25s} .card:nth-child(6){animation-delay:.30s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(35px);opacity:0}to{transform:translateY(0);opacity:1}}
+.fade{animation:fadeIn .3s ease both;}
+.slide{animation:slideUp .38s cubic-bezier(.34,1.56,.64,1) both;}
+</style>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- ══ LOADING OVERLAY ══ -->
+<div x-show="loading" class="loading-overlay" x-cloak>
+  <div class="loading-card">
+    <div style="margin-bottom:.75rem;"><div class="spinner spinner-green" style="margin:0 auto;width:32px;height:32px;border-width:3px;"></div></div>
+    <div style="font-weight:600;color:var(--g7);" x-text="loadingMsg"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div x-show="toast" class="toast" x-text="toastMsg" x-cloak></div>
+
+<!-- ════════════════════════════════════════
+     LOCK SCREEN
+════════════════════════════════════════ -->
+<div x-show="view==='lock'" class="lock" x-cloak>
+  <div class="lock-card" style="animation:cardFadeUp .45s ease both;">
+    <div class="lock-icon">💚</div>
+    <h1 class="serif" style="font-size:1.55rem;font-weight:700;text-align:center;color:var(--g9);margin-bottom:.2rem;">Sachsen Singles</h1>
+    <p style="text-align:center;color:var(--gray5);font-size:.85rem;margin-bottom:1.6rem;">Exklusiv für Mitglieder der Gruppe</p>
+    <label class="flabel" style="text-align:center;display:block;">🔐 Wochencode eingeben</label>
+    <input class="code-input" :class="{shake:lockErr}" type="text" x-model="code"
+      placeholder="••••••" maxlength="12" @keydown.enter="checkCode()" @animationend="lockErr=false"/>
+    <p x-show="lockErr" style="text-align:center;color:var(--red);font-size:.8rem;margin-top:.45rem;">❌ Falscher Code — schau in der Facebook-Gruppe nach!</p>
+    <button class="btn btn-green" style="margin-top:1.1rem;" @click="checkCode()" :disabled="loading">
+      <span x-show="!loading">Eintreten →</span>
+      <span x-show="loading" class="spinner"></span>
+    </button>
+    <!-- Kein Admin-Button — Admin öffnet yoursite.com/#admin -->
+    <p style="text-align:center;font-size:.73rem;color:var(--gray3);margin-top:1.2rem;">Code im Pinpost der <strong style="color:var(--g7);">Sachsen Singles Connect</strong> Gruppe</p>
+  </div>
+  <p style="color:rgba(255,255,255,.35);font-size:.7rem;margin-top:1.2rem;">🔒 SSL · DSGVO · Kostenlos</p>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN LOGIN
+════════════════════════════════════════ -->
+<div x-show="view==='adminlogin'" class="admin-pin-screen" x-cloak>
+  <div class="admin-pin-card" style="animation:cardFadeUp .45s ease both;">
+    <div style="text-align:center;font-size:2.2rem;margin-bottom:.8rem;">🛡️</div>
+    <h2 class="serif" style="font-size:1.4rem;font-weight:700;color:#fff;text-align:center;margin-bottom:.3rem;">Admin-Bereich</h2>
+    <p style="color:#888;font-size:.82rem;text-align:center;margin-bottom:1.5rem;">Nur für den Gruppenadmin</p>
+    <div class="fgroup">
+      <label class="flabel" style="color:#aaa;">Admin-PIN</label>
+      <input class="finput" type="password" x-model="adminPin" placeholder="••••••"
+        :class="{shake:adminErr}" @keydown.enter="checkAdmin()" @animationend="adminErr=false"
+        style="background:#2a2a2a;border-color:#444;color:#fff;"/>
+    </div>
+    <p x-show="adminErr" style="color:var(--red);font-size:.8rem;margin-bottom:.7rem;">❌ Falscher PIN</p>
+    <button class="btn btn-gold" @click="checkAdmin()" :disabled="loading">Einloggen →</button>
+    <button class="btn btn-soft" @click="view='lock'" style="margin-top:.6rem;">← Zurück</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN PANEL
+════════════════════════════════════════ -->
+<div x-show="view==='admin'" x-cloak class="fade">
+  <div class="admin-nav">
+    <div class="admin-nav-inner">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <span style="font-size:1.1rem;">🛡️</span>
+        <div><div style="font-weight:700;font-size:.95rem;">Admin-Panel</div><div style="font-size:.65rem;color:#888;">Sachsen Singles Connect</div></div>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center;">
+        <span x-show="adminQueue.length>0" style="background:var(--red);color:#fff;border-radius:20px;padding:2px 8px;font-size:.72rem;font-weight:700;" x-text="adminQueue.length+' neu'"></span>
+        <button class="btn btn-soft btn-sm" @click="view='gallery'" style="background:rgba(255,255,255,.1);border-color:#444;color:#ccc;font-size:.78rem;">App →</button>
+        <button class="btn btn-soft btn-sm" @click="adminLogout()" style="background:transparent;border-color:#555;color:#888;padding:.4rem .6rem;">🚪</button>
+      </div>
+    </div>
+  </div>
+  <div class="admin-tab-row">
+    <div class="admin-tab-inner">
+      <div class="atab" :class="{on:adminTab==='queue'}" @click="adminTab='queue'">
+        📋 Queue <span x-show="adminQueue.length>0" style="background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.65rem;margin-left:.3rem;" x-text="adminQueue.length"></span>
+      </div>
+      <div class="atab" :class="{on:adminTab==='alle'}" @click="adminTab='alle'">👥 Alle Profile</div>
+      <div class="atab" :class="{on:adminTab==='code'}" @click="adminTab='code'">🔑 Wochencode</div>
+      <div class="atab" :class="{on:adminTab==='stats'}" @click="adminTab='stats'">📊 Statistik</div>
+    </div>
+  </div>
+
+  <!-- Queue -->
+  <div class="admin-body" x-show="adminTab==='queue'">
+    <div x-show="adminQueue.length===0" style="text-align:center;padding:3rem 1rem;color:var(--gray5);">
+      <div style="font-size:2.5rem;margin-bottom:.7rem;">✅</div>
+      <div style="font-weight:600;color:var(--gray7);">Queue ist leer</div>
+      <div style="font-size:.85rem;margin-top:.35rem;">Alle Profile wurden bearbeitet.</div>
+    </div>
+    <template x-for="(p, i) in adminQueue" :key="p.id">
+      <div class="q-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem;">
+          <div class="q-name" x-text="p.vorname+', '+p.alter"></div>
+          <span class="sbadge s-neu">NEU</span>
+        </div>
+        <div class="q-meta">📍 <span x-text="p.region"></span> &nbsp;·&nbsp; 🗓️ <span x-text="formatDate(p.timestamp)"></span></div>
+        <div style="background:var(--gray0);border-radius:8px;padding:.5rem .75rem;font-size:.78rem;color:var(--gray7);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;">
+          <span>🔗</span>
+          <a :href="p.fb_link" target="_blank" rel="noopener" style="color:var(--g7);text-decoration:none;word-break:break-all;" x-text="p.fb_link"></a>
+        </div>
+        <div x-show="p.eisbrecher" style="background:var(--g0);border-radius:8px;padding:.5rem .75rem;font-size:.78rem;color:var(--gray7);margin-bottom:.75rem;">
+          💬 <span x-text="p.eisbrecher"></span>
+        </div>
+        <div class="q-actions">
+          <button class="q-btn q-btn-ok" @click="adminApprove(i)">✅ Freigeben</button>
+          <button class="q-btn q-btn-ban" @click="adminBan(i)">🚫 Sperren</button>
+          <button class="q-btn q-btn-del" @click="adminDelete(i)">🗑️ Löschen</button>
+          <button class="q-btn q-btn-fb" @click="openFB(p.fb_link)">👁️ FB prüfen</button>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Alle Profile -->
+  <div class="admin-body" x-show="adminTab==='alle'">
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+      <select class="fsel" x-model="adminFilter" style="flex:1;" @change="loadAdminProfiles()">
+        <option value="">Alle Status</option><option>Aktiv</option><option>Neu</option><option>Gesperrt</option><option>Inaktiv</option>
+      </select>
+      <select class="fsel" x-model="adminRegionFilter" style="flex:1;" @change="loadAdminProfiles()">
+        <option value="">Alle Regionen</option>
+        <option>Chemnitz</option><option>Dresden</option><option>Leipzig</option>
+        <option>Zwickau</option><option>Plauen</option><option>Görlitz</option><option>Erzgebirge</option><option>Sonstige</option>
+      </select>
+    </div>
+    <template x-for="(p, i) in filteredAdmin" :key="p.id">
+      <div class="q-card" :class="p.status==='Gesperrt'?'gesperrt':p.status==='Aktiv'?'aktiv':''">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.2rem;">
+          <div class="q-name" x-text="p.vorname+', '+p.alter"></div>
+          <span class="sbadge" :class="'s-'+p.status.toLowerCase()" x-text="p.status"></span>
+        </div>
+        <div class="q-meta">📍 <span x-text="p.region"></span> &nbsp;·&nbsp; 🗓️ <span x-text="formatDate(p.timestamp)"></span></div>
+        <div class="q-actions">
+          <button class="q-btn q-btn-ok" x-show="p.status!=='Aktiv'" @click="adminSetStatus(p.id,'Aktiv')">✅ Aktivieren</button>
+          <button class="q-btn q-btn-ban" x-show="p.status!=='Gesperrt'" @click="adminSetStatus(p.id,'Gesperrt')">🚫 Sperren</button>
+          <button class="q-btn q-btn-un" x-show="p.status==='Gesperrt'" @click="adminSetStatus(p.id,'Aktiv')">↩️ Entsperren</button>
+          <button class="q-btn q-btn-del" @click="adminDeleteById(p.id)">🗑️ Löschen</button>
+          <button class="q-btn q-btn-fb" @click="openFB(p.fb_link)">👁️ FB-Profil</button>
+        </div>
+      </div>
+    </template>
+    <div x-show="filteredAdmin.length===0&&!loading" style="text-align:center;padding:2.5rem 1rem;color:var(--gray5);">
+      <div style="font-size:2rem;margin-bottom:.5rem;">📭</div><div>Keine Profile mit diesem Filter.</div>
+    </div>
+  </div>
+
+  <!-- Wochencode -->
+  <div class="admin-body" x-show="adminTab==='code'">
+    <div class="code-box">
+      <h3 class="serif" style="font-size:1.2rem;font-weight:700;margin-bottom:.3rem;">🔑 Wochencode verwalten</h3>
+      <p style="font-size:.82rem;color:var(--gray5);margin-bottom:1rem;">Aktuell gültiger Code (nur du siehst das hier):</p>
+      <div class="current-code" x-text="currentWeekCode||'— noch nicht gesetzt —'"></div>
+      <div class="fgroup" style="margin-top:1.2rem;">
+        <label class="flabel">Neuen Code eingeben</label>
+        <input class="finput" type="text" x-model="newWeekCode" placeholder="z.B. HERBST2025"
+          style="font-size:1.1rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;"/>
+        <p style="font-size:.75rem;color:var(--gray5);margin-top:.3rem;">Nur Buchstaben & Zahlen, 4–12 Zeichen empfohlen.</p>
+      </div>
+      <button class="btn btn-gold" @click="changeWeekCode()" x-show="newWeekCode.length>=3">🔄 Code jetzt wechseln</button>
+      <div style="background:#fff3cd;border:1.5px solid #ffe69c;border-radius:11px;padding:.75rem;font-size:.82rem;color:#664d03;margin-top:.9rem;">
+        <strong>📢 Dual-Hash aktiv:</strong> Beide Codes gelten 24h gleichzeitig — kein User fliegt raus.
+      </div>
+      <div x-show="codeChanged" style="background:var(--g0);border:1.5px solid var(--g1);border-radius:11px;padding:.9rem;margin-top:.9rem;">
+        <div style="font-weight:600;color:var(--g7);margin-bottom:.3rem;">✅ Code gewechselt!</div>
+        <div style="font-size:.82rem;">Jetzt in der Gruppe als Pinpost posten: <strong x-text="currentWeekCode"></strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistik -->
+  <div class="admin-body" x-show="adminTab==='stats'">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" style="color:var(--g);" x-text="stats.total"></div><div class="stat-lbl">Gesamt</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--g);" x-text="stats.aktiv"></div><div class="stat-lbl">Aktiv</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--gold);" x-text="adminQueue.length"></div><div class="stat-lbl">In Queue</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--red);" x-text="stats.gesperrt"></div><div class="stat-lbl">Gesperrt</div></div>
+    </div>
+    <div class="code-box" style="margin-bottom:1rem;">
+      <h3 class="serif" style="font-size:1.1rem;font-weight:700;margin-bottom:.9rem;">📍 Nach Region</h3>
+      <template x-for="r in regionStats">
+        <div class="info-row">
+          <span style="font-weight:500;" x-text="r.name"></span>
+          <div style="display:flex;align-items:center;gap:.6rem;">
+            <div style="height:6px;border-radius:3px;background:var(--g);" :style="`width:${Math.max(r.count*20,6)}px`"></div>
+            <span style="font-weight:700;color:var(--g);" x-text="r.count"></span>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="code-box">
+      <h3 class="serif" style="font-size:1.1rem;font-weight:700;margin-bottom:.9rem;">🎂 Altersgruppen</h3>
+      <template x-for="a in ageStats">
+        <div class="info-row">
+          <span style="font-weight:500;" x-text="a.label"></span>
+          <div style="display:flex;align-items:center;gap:.6rem;">
+            <div style="height:6px;border-radius:3px;background:var(--gold);" :style="`width:${Math.max(a.count*20,6)}px`"></div>
+            <span style="font-weight:700;color:var(--gold);" x-text="a.count"></span>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     GALERIE
+════════════════════════════════════════ -->
+<div x-show="view==='gallery'" x-cloak class="fade">
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-box">💚</div>
+        <div><div class="logo-text">Sachsen Singles</div><div class="logo-sub">CONNECT</div></div>
+      </div>
+      <div style="display:flex;gap:.45rem;align-items:center;">
+        <button x-show="myProfile" class="btn btn-soft btn-sm" @click="view='myprofile'">👤 Mein Profil</button>
+        <!-- Admin-Link nicht in der Galerie — Admin öffnet yoursite.com/#admin -->
+        <button class="btn btn-soft btn-sm" @click="logout()" style="color:var(--gray5);padding:.5rem .7rem;">🚪</button>
+      </div>
+    </div>
+  </nav>
+  <div class="filters">
+    <div class="filter-row">
+      <select class="fsel" x-model="fRegion" @change="applyFilters()">
+        <option value="">📍 Alle Regionen</option>
+        <option>Chemnitz</option><option>Dresden</option><option>Leipzig</option>
+        <option>Zwickau</option><option>Plauen</option><option>Görlitz</option><option>Erzgebirge</option><option>Sonstige</option>
+      </select>
+      <select class="fsel" x-model="fAge" @change="applyFilters()">
+        <option value="">🎂 Alle Alter</option>
+        <option value="18-29">18–29</option><option value="30-39">30–39</option>
+        <option value="40-49">40–49</option><option value="50-99">50+</option>
+      </select>
+      <button class="chip" :class="{on:fVerified}" @click="fVerified=!fVerified;applyFilters()">✅ Verifiziert</button>
+    </div>
+  </div>
+  <div x-show="myProfile" class="my-banner">
+    <div class="banner-inner">
+      <div>
+        <div style="font-size:.72rem;opacity:.65;">Dein Profil</div>
+        <div class="serif" style="font-size:1.1rem;font-weight:700;" x-text="myProfile?.vorname+', '+myProfile?.alter"></div>
+      </div>
+      <button class="btn btn-soft btn-sm" @click="view='myprofile'" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;">Bearbeiten ✏️</button>
+    </div>
+  </div>
+  <!-- Queue-Banner nur sichtbar wenn Admin eingeloggt -->
+  <div x-show="isAdmin && adminQueue.length > 0" style="max-width:700px;margin:.9rem auto 0;padding:0 1.2rem;">
+    <div style="background:#1a1a1a;border-radius:13px;padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" @click="view='admin';adminTab='queue'">
+      <div style="display:flex;align-items:center;gap:.6rem;color:#fff;">
+        <span style="background:var(--red);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;" x-text="adminQueue.length"></span>
+        <span style="font-size:.85rem;font-weight:600;">Neue Profile warten auf Freigabe</span>
+      </div>
+      <span style="color:var(--gold);font-size:.82rem;">Admin-Panel →</span>
+    </div>
+  </div>
+  <div class="sec-title">Singles in Sachsen <span class="count" x-text="filtered.length+' Profile'"></span></div>
+  <div class="gallery">
+    <template x-for="p in filtered" :key="p.id">
+      <div class="card" @click="openDetail(p)">
+        <div class="card-img">
+          <div class="card-avatar" :style="`background:hsl(${hashColor(p.id)},38%,86%);color:hsl(${hashColor(p.id)},45%,28%)`" x-text="p.vorname.charAt(0)"></div>
+          <img x-show="p.bild_url" :src="p.bild_url" @error="p.bild_url=null" loading="lazy"/>
+          <div x-show="p.bild2_url" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);border-radius:6px;padding:2px 6px;font-size:.65rem;color:#fff;font-weight:700;">+1 📷</div>
+          <div class="badge-v" x-show="p.verifiziert">✓ Verifiziert</div>
+        </div>
+        <div class="card-body">
+          <div class="card-name" x-text="p.vorname+', '+p.alter"></div>
+          <div class="card-meta">📍 <span x-text="p.region"></span></div>
+          <button class="btn-connect" @click.stop="connectFB(p)">💬 Anschreiben</button>
+        </div>
+      </div>
+    </template>
+    <div x-show="filtered.length===0&&!loading" style="grid-column:1/-1;text-align:center;padding:3.5rem 1rem;color:var(--gray5);">
+      <div style="font-size:2.5rem;margin-bottom:.7rem;">🔍</div>
+      <div style="font-weight:600;margin-bottom:.35rem;color:var(--gray7);">Keine Profile gefunden</div>
+      <div style="font-size:.85rem;">Andere Filter wählen oder eigenes Profil erstellen!</div>
+    </div>
+  </div>
+  <button class="fab" @click="openCreate()">✨ Profil erstellen</button>
+  <div style="height:5rem;"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PROFIL DETAIL
+════════════════════════════════════════ -->
+<div x-show="view==='detail'" class="backdrop fade" @click.self="view='gallery'" x-cloak>
+  <div class="sheet slide" x-show="sel">
+    <div class="handle"></div>
+    <template x-if="sel">
+      <div>
+        <div x-show="!sel.bild_url" class="detail-avatar" :style="`background:hsl(${hashColor(sel.id)},38%,86%);color:hsl(${hashColor(sel.id)},45%,28%)`" x-text="sel.vorname.charAt(0)"></div>
+        <img x-show="sel.bild_url" class="detail-img" :src="sel.bild_url" :alt="sel.vorname" @error="sel.bild_url=null"/>
+        <!-- 2. Foto im Detail -->
+        <img x-show="sel.bild2_url" :src="sel.bild2_url" :alt="sel.vorname + ' Foto 2'"
+             class="detail-img" style="margin-top:.6rem;" @error="sel.bild2_url=null"/>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;">
+          <h2 class="serif" style="font-size:1.9rem;font-weight:700;" x-text="sel.vorname+', '+sel.alter"></h2>
+          <span x-show="sel.verifiziert" style="color:var(--g);font-size:.82rem;font-weight:600;">✅</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.45rem;margin:.6rem 0 .8rem;">
+          <span class="tag">📍 <span x-text="sel.region"></span></span>
+        </div>
+        <div x-show="sel.eisbrecher" class="bio-box"><div class="bio-lbl">💬 Eisbrecher</div><p style="color:var(--gray7);font-size:.9rem;line-height:1.5;" x-text="sel.eisbrecher"></p></div>
+        <div style="display:flex;flex-direction:column;gap:.7rem;margin-top:1.3rem;">
+          <button class="btn btn-gold" @click="connectFB(sel)">💬 Auf Facebook anschreiben</button>
+          <button class="btn btn-soft" @click="view='gallery'">← Zurück</button>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PROFIL ERSTELLEN
+════════════════════════════════════════ -->
+<div x-show="view==='create'" class="backdrop fade" @click.self="view='gallery'" x-cloak>
+  <div class="sheet slide">
+    <div class="handle"></div>
+    <div class="steps"><template x-for="i in 3"><div class="dot" :class="{on:step===i}"></div></template></div>
+    <div x-show="step===1">
+      <h2 class="serif" style="font-size:1.5rem;font-weight:700;margin-bottom:.2rem;">Wer bist du? 👋</h2>
+      <p style="color:var(--gray5);font-size:.85rem;margin-bottom:1.3rem;">Nur Vorname, Alter, Region — kein Nachname.</p>
+      <div class="fgroup"><label class="flabel">Vorname *</label><input class="finput" x-model="form.name" placeholder="z.B. Maria"/></div>
+      <div class="fgroup"><label class="flabel">Alter *</label><input class="finput" type="number" x-model="form.age" min="18" max="99" placeholder="Mindestens 18"/></div>
+      <div class="fgroup"><label class="flabel">Region *</label>
+        <select class="finput" x-model="form.region">
+          <option value="">Region wählen…</option>
+          <option>Chemnitz</option><option>Dresden</option><option>Leipzig</option>
+          <option>Zwickau</option><option>Plauen</option><option>Görlitz</option><option>Erzgebirge</option><option>Sonstige</option>
+        </select>
+      </div>
+      <p class="err" x-show="err" x-text="err"></p>
+      <button class="btn btn-green" @click="next1()">Weiter → <span style="opacity:.65;font-size:.82rem;">1 / 3</span></button>
+    </div>
+    <div x-show="step===2">
+      <h2 class="serif" style="font-size:1.5rem;font-weight:700;margin-bottom:.2rem;">Dein Facebook-Link 🔗</h2>
+      <p style="color:var(--gray5);font-size:.85rem;margin-bottom:1.3rem;">Öffne dein Profil und kopiere die URL aus dem Browser.</p>
+      <div class="fgroup"><label class="flabel">Facebook-Link *</label><input class="finput" type="url" x-model="form.fb" placeholder="https://facebook.com/deinname"/></div>
+      <!-- ── BILD-UPLOAD ── -->
+      <div class="fgroup">
+        <label class="flabel">Fotos (optional, max. 2 Bilder)</label>
+
+        <!-- Upload-Zone -->
+        <div x-show="form.bilder.length < 2"
+             class="upload-zone"
+             :class="{'upload-drag': dragover}"
+             @click="$refs.fileInput.click()"
+             @dragover.prevent="dragover=true"
+             @dragleave="dragover=false"
+             @drop.prevent="handleDrop($event)">
+          <input type="file" x-ref="fileInput" accept="image/*" multiple
+                 style="display:none" @change="handleFiles($event)"/>
+          <div x-show="!uploading">
+            <div style="font-size:1.8rem;margin-bottom:.35rem;">📸</div>
+            <div style="font-weight:600;font-size:.88rem;color:var(--g7);">Foto auswählen</div>
+            <div style="font-size:.75rem;color:var(--gray5);margin-top:.2rem;">Tippe hier oder ziehe ein Bild rein · JPG/PNG · max. 5 MB</div>
+          </div>
+          <div x-show="uploading" style="text-align:center;">
+            <div class="spinner spinner-green" style="margin:0 auto .5rem;width:28px;height:28px;"></div>
+            <div style="font-size:.82rem;color:var(--g7);font-weight:600;">Wird hochgeladen…</div>
+          </div>
+        </div>
+
+        <!-- Vorschau der hochgeladenen Bilder -->
+        <div x-show="form.bilder.length > 0" style="display:flex;gap:.6rem;margin-top:.7rem;flex-wrap:wrap;">
+          <template x-for="(img, i) in form.bilder" :key="i">
+            <div style="position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);">
+              <img :src="img.url" style="width:100%;height:100%;object-fit:cover;"/>
+              <button @click.prevent="removeImage(i)"
+                style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,.9);
+                       color:#fff;border:none;border-radius:50%;width:22px;height:22px;
+                       font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+              <div x-show="i===0" style="position:absolute;bottom:0;left:0;right:0;
+                   background:rgba(0,0,0,.55);color:#fff;font-size:.6rem;
+                   font-weight:600;text-align:center;padding:2px;">HAUPT</div>
+            </div>
+          </template>
+          <!-- Zweites Foto hinzufügen -->
+          <div x-show="form.bilder.length === 1"
+               @click="$refs.fileInput.click()"
+               style="width:90px;height:90px;border-radius:10px;border:2px dashed var(--g4);
+                      display:flex;flex-direction:column;align-items:center;justify-content:center;
+                      cursor:pointer;color:var(--g7);font-size:.72rem;font-weight:600;gap:.2rem;">
+            <span style="font-size:1.4rem;">+</span>
+            <span>2. Foto</span>
+          </div>
+        </div>
+
+        <p x-show="uploadErr" style="color:var(--red);font-size:.78rem;margin-top:.4rem;" x-text="uploadErr"></p>
+      </div>
+      <div class="fgroup"><label class="flabel">Eisbrecher (optional)</label><textarea class="finput" x-model="form.bio" rows="3" placeholder="Was liebst du an Sachsen am meisten?" style="resize:none;"></textarea></div>
+      <p class="err" x-show="err" x-text="err"></p>
+      <div style="display:flex;gap:.6rem;"><button class="btn btn-soft" @click="step=1;err=''" style="flex:1;">← Zurück</button><button class="btn btn-green" @click="next2()" style="flex:2;">Weiter →</button></div>
+    </div>
+    <div x-show="step===3">
+      <h2 class="serif" style="font-size:1.5rem;font-weight:700;margin-bottom:.2rem;">Fast geschafft! ✅</h2>
+      <div style="background:var(--gray0);border-radius:12px;padding:.9rem;margin-bottom:1rem;">
+        <div style="font-size:.73rem;font-weight:600;color:var(--gray5);margin-bottom:.45rem;">DEINE ANGABEN</div>
+        <div style="display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:.25rem;"><span style="color:var(--gray5);">Name</span><strong x-text="form.name"></strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:.25rem;"><span style="color:var(--gray5);">Alter</span><strong x-text="form.age"></strong></div>
+        <div style="display:flex;justify-content:space-between;font-size:.88rem;"><span style="color:var(--gray5);">Region</span><strong x-text="form.region"></strong></div>
+      </div>
+      <div class="consent-box" style="margin-bottom:1rem;">
+        <input type="checkbox" id="dsgvo" x-model="form.consent"/>
+        <label for="dsgvo" style="font-size:.82rem;color:var(--gray7);line-height:1.45;cursor:pointer;">
+          Ich bin <strong>über 18</strong> und willige ein, dass mein Profil für Gruppenmitglieder sichtbar ist. Ich kann es jederzeit löschen. <a href="datenschutz.html" style="color:var(--g7);">Datenschutz</a>
+        </label>
+      </div>
+      <p class="err" x-show="err" x-text="err"></p>
+      <div style="display:flex;gap:.6rem;">
+        <button class="btn btn-soft" @click="step=2;err=''" style="flex:1;">← Zurück</button>
+        <button class="btn btn-green" @click="submitProfile()" style="flex:2;" :disabled="loading">
+          <span x-show="!loading">🌱 Profil erstellen</span>
+          <span x-show="loading" class="spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ERFOLG + MAGIC LINK
+════════════════════════════════════════ -->
+<div x-show="view==='success'" class="backdrop fade" x-cloak>
+  <div class="sheet slide">
+    <div class="handle"></div>
+    <div class="success-box">
+      <div style="font-size:2.8rem;margin-bottom:.4rem;">🎉</div>
+      <h2 class="serif" style="font-size:1.5rem;font-weight:700;color:var(--g9);margin-bottom:.2rem;">Profil gespeichert!</h2>
+      <p style="color:var(--gray5);font-size:.85rem;">Dein Profil wird vom Admin geprüft und dann freigeschaltet.</p>
+    </div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--gray7);margin-bottom:.4rem;">🔑 Dein persönlicher Bearbeitungslink:</div>
+    <div class="magic-box" x-text="magic"></div>
+    <p style="font-size:.75rem;color:var(--gray5);margin-bottom:1rem;">⚠️ Speichere diesen Link — er ist dein einziger Zugang zur Bearbeitung.</p>
+    <div style="display:flex;flex-direction:column;gap:.65rem;">
+      <button class="btn btn-gold" @click="shareMagicLink()">📤 Link sichern (Teilen)</button>
+      <button class="btn btn-green" @click="view='gallery'">🏠 Zur Galerie</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MEIN PROFIL
+════════════════════════════════════════ -->
+<div x-show="view==='myprofile'" x-cloak class="fade">
+  <nav class="nav">
+    <div class="nav-inner">
+      <button class="btn btn-soft btn-sm" @click="view='gallery'">← Galerie</button>
+      <span class="serif" style="font-size:1.1rem;font-weight:700;color:var(--g9);">Mein Profil</span>
+      <div style="width:72px;"></div>
+    </div>
+  </nav>
+  <div style="max-width:700px;margin:0 auto;padding:1.5rem 1.2rem;" x-show="myProfile">
+    <div style="text-align:center;margin-bottom:1.3rem;">
+      <div style="width:90px;height:90px;border-radius:50%;margin:0 auto .7rem;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garant',serif;font-size:2.7rem;font-weight:700;background:var(--g1);color:var(--g7);" x-text="myProfile?.vorname?.charAt(0)"></div>
+      <h2 class="serif" style="font-size:1.5rem;font-weight:700;" x-text="myProfile?.vorname+', '+myProfile?.alter"></h2>
+      <span class="tag" x-text="'📍 '+myProfile?.region"></span>
+    </div>
+    <div style="background:var(--gold0);border:1.5px solid #e8d57a;border-radius:13px;padding:.9rem;margin-bottom:1.3rem;text-align:center;">
+      <div style="font-size:.75rem;color:#6b5700;">Profil-Status</div>
+      <div style="font-weight:700;color:#8a6d00;" x-text="myProfile?.status==='Aktiv'?'✅ Aktiv & sichtbar':'⏳ Wartet auf Admin-Freigabe'"></div>
+    </div>
+    <div class="fgroup"><label class="flabel">Vorname</label><input class="finput" x-model="myProfile.vorname"/></div>
+    <div class="fgroup"><label class="flabel">Bild-URL</label><input class="finput" type="url" x-model="myProfile.bild_url" placeholder="https://..."/></div>
+    <div class="fgroup"><label class="flabel">Eisbrecher</label><textarea class="finput" x-model="myProfile.eisbrecher" rows="3" style="resize:none;"></textarea></div>
+    <div style="display:flex;flex-direction:column;gap:.65rem;margin-top:1.3rem;">
+      <button class="btn btn-green" @click="saveMyProfile()" :disabled="loading">
+        <span x-show="!loading">💾 Änderungen speichern</span>
+        <span x-show="loading" class="spinner"></span>
+      </button>
+      <div style="border-top:1px solid var(--gray1);margin:.4rem 0;"></div>
+      <div style="background:var(--red0);border:1.5px solid var(--red1);border-radius:13px;padding:.9rem;">
+        <div style="font-weight:600;color:#b91c1c;font-size:.88rem;margin-bottom:.3rem;">⚠️ Profil löschen</div>
+        <p style="font-size:.78rem;color:#7f1d1d;margin-bottom:.65rem;">Dein Profil wird sofort aus der Galerie entfernt.</p>
+        <button class="btn btn-danger" @click="deleteMyProfile()" :disabled="loading">
+          <span x-show="!loading">🗑️ Profil endgültig löschen</span>
+          <span x-show="loading" class="spinner"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  SACHSEN SINGLES CONNECT — Frontend v3.0
+//  SICHERHEIT:
+//  ✅ Kein API-Key, kein Passwort, kein Admin-PIN im Code
+//  ✅ Admin nur via geheimer URL: yoursite.com/#admin
+//  ✅ Admin-Session nur im RAM (nie in localStorage)
+//  ✅ Kein Admin-Button für normale User sichtbar
+//  ✅ PIN wird SHA-256 gehasht bevor er das Gerät verlässt
+//  ✅ Wochencode wird SHA-256 gehasht bevor er das Gerät verlässt
+// ════════════════════════════════════════════════════════════
+
+// ── Konfiguration ────────────────────────────────────────
+const GAS = "https://script.google.com/macros/s/AKfycbxW9WEghw-lKYybRKyRcETSklbF1-EotGrutg3f4yT_DS6T6hotMwT0JlIUTZl-F4MQ/exec";
+
+// imgBB: kostenloser Bild-Hosting-Dienst
+// API-Key hier eintragen nach Registrierung auf imgbb.com (kostenlos):
+// → imgbb.com → Account → API → Key generieren
+const IMGBB_KEY = "dd4bb2cdf8010d024366badd1144c0d8"; // ← eintragen!
+// Hinweis: imgBB API-Keys sind für Client-Nutzung designed (kein Sicherheitsrisiko).
+// Schlimmstenfalls kann jemand Bilder auf dein imgBB-Konto hochladen.
+
+// ── SHA-256 Helfer (läuft lokal im Browser) ───────────────
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+// ── API-Aufruf (alle Calls als GET, kein CORS-Problem) ────
+async function api(params) {
+  try {
+    const url = new URL(GAS);
+    Object.entries(params).forEach(([k,v]) => {
+      if (v !== null && v !== undefined) url.searchParams.set(k, String(v));
+    });
+    const res  = await fetch(url.toString());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } catch(e) {
+    console.error("API Fehler:", params.a, e.message);
+    return { ok: false, error: e.message };
+  }
+}
+
+// ── Demo-Daten (nur wenn GAS nicht erreichbar) ────────────
+const DEMO = [
+  {id:1,vorname:"Sophie",alter:27,region:"Dresden",bild:null,bio:"Wandern im Erzgebirge.",verifiziert:true,fb:"https://facebook.com/demo1"},
+  {id:2,vorname:"Lukas", alter:34,region:"Leipzig",bild:null,bio:"Weltmeister im Grillieren.",verifiziert:true,fb:"https://facebook.com/demo2"},
+  {id:3,vorname:"Jana",  alter:29,region:"Chemnitz",bild:null,bio:null,verifiziert:false,fb:"https://facebook.com/demo3"},
+  {id:4,vorname:"Tobias",alter:42,region:"Zwickau",bild:null,bio:"Leidenschaftlicher Motorradfahrer.",verifiziert:true,fb:"https://facebook.com/demo4"},
+  {id:5,vorname:"Marie", alter:31,region:"Erzgebirge",bild:null,bio:null,verifiziert:false,fb:"https://facebook.com/demo5"},
+  {id:6,vorname:"Robert",alter:38,region:"Görlitz",bild:null,bio:"Stadtführer aus Überzeugung!",verifiziert:true,fb:"https://facebook.com/demo6"},
+];
+
+// ════════════════════════════════════════════════════════════
+//  APP STATE
+// ════════════════════════════════════════════════════════════
+function app() {
+  return {
+    // Navigation
+    view: "lock",
+
+    // Loading / Toast
+    loading: false,
+    loadingMsg: "Lädt…",
+    toast: false,
+    toastMsg: "",
+
+    // Lock
+    code: "",
+    lockErr: false,
+
+    // Gallery
+    profiles: [],
+    filtered: [],
+    fRegion: "",
+    fAge: "",
+    fVerified: false,
+
+    // Profil-Detail
+    sel: null,
+
+    // Eigenes Profil
+    myProfile: null,
+    magic: "",
+
+    // Erstellen-Wizard
+    step: 1,
+    err: "",
+    form: { name:"", age:"", region:"", fb:"", bild:"", bio:"", consent:false,
+          bilder: [],
+        },
+
+    // Upload
+    uploading: false,
+    uploadErr: "",
+    dragover: false,
+
+    // ──────────────────────────────────────────────────────────
+    //  ADMIN — alles nur im RAM, nie in localStorage!
+    // ──────────────────────────────────────────────────────────
+    isAdmin: false,
+    adminST: null,          // Session-Token (nur RAM)
+    adminPin: "",
+    adminErr: false,
+    adminTab: "queue",
+    adminQueue: [],
+    adminProfiles: [],
+    adminFilter: "",
+    adminRegion: "",
+    newCode: "",
+    currentCode: "",
+    codeChanged: false,
+
+    // ── Computed ──────────────────────────────────────────────
+    get filteredAdmin() {
+      return this.adminProfiles.filter(p => {
+        if (this.adminFilter && p.status !== this.adminFilter) return false;
+        if (this.adminRegion && p.region !== this.adminRegion) return false;
+        return true;
+      });
+    },
+    get stats() {
+      const all = this.adminProfiles;
+      return {
+        total:    all.length,
+        aktiv:    all.filter(p=>p.status==="Aktiv").length,
+        gesperrt: all.filter(p=>p.status==="Gesperrt").length,
+        queue:    this.adminQueue.length,
+      };
+    },
+    get regionStats() {
+      const regs = ["Dresden","Leipzig","Chemnitz","Zwickau","Erzgebirge","Görlitz","Plauen","Sonstige"];
+      return regs.map(r=>({name:r,count:this.profiles.filter(p=>p.region===r).length}))
+                 .filter(r=>r.count>0).sort((a,b)=>b.count-a.count);
+    },
+    get ageStats() {
+      return [{label:"18–29",min:18,max:29},{label:"30–39",min:30,max:39},
+              {label:"40–49",min:40,max:49},{label:"50+",min:50,max:99}]
+        .map(g=>({label:g.label,count:this.profiles.filter(p=>p.alter>=g.min&&p.alter<=g.max).length}));
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════════════════
+    async init() {
+      // Admin-Zugang nur via geheimer URL-Hash: yoursite.com/#admin
+      // URL-Hashes werden NIEMALS an Server übertragen (Browser-Standard)!
+      if (window.location.hash === "#admin") {
+        history.replaceState(null, "", window.location.pathname); // Hash aus URL entfernen
+        this.view = "adminlogin";
+        return;
+      }
+
+      // Normaler User: gespeicherten Code prüfen
+      const savedCode = localStorage.getItem("ssc_code");
+      const savedProf = localStorage.getItem("ssc_profile");
+      if (savedProf) {
+        try { this.myProfile = JSON.parse(savedProf); } catch(e) {}
+      }
+
+      // URL-Parameter: Edit-Token für direkten Zugang
+      const editToken = new URLSearchParams(window.location.search).get("edit");
+      if (editToken) {
+        await this.loadByToken(editToken);
+        return;
+      }
+
+      if (savedCode) {
+        this.view = "gallery";
+        await this.loadProfiles();
+      }
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  WOCHENCODE
+    // ════════════════════════════════════════════════════════
+    async checkCode() {
+      if (!this.code.trim()) return;
+      this.loading = true; this.loadingMsg = "Code wird geprüft…";
+      try {
+        // Code wird gehasht — Klartext verlässt NIE das Gerät!
+        const hash = await sha256(this.code.trim());
+        const res  = await api({ a:"cc", h:hash });
+        if (res?.valid) {
+          localStorage.setItem("ssc_code", this.code.trim());
+          this.view = "gallery";
+          await this.loadProfiles();
+        } else {
+          this.lockErr = true;
+          this.code = "";
+        }
+      } finally { this.loading = false; }
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  PROFILE LADEN
+    // ════════════════════════════════════════════════════════
+    async loadProfiles() {
+      this.loading = true; this.loadingMsg = "Profile werden geladen…";
+      try {
+        const res = await api({ a:"p" });
+        // Backend gibt: bild, bio, fb → Frontend-Template braucht: bild_url, eisbrecher, fb_link
+        const mapProfile = p => ({
+          ...p,
+          bild_url:    p.bild    || null,
+          bild2_url:   p.bild2   || null,
+          eisbrecher:  p.bio     || null,
+          fb_link:     p.fb      || "",
+        });
+        this.profiles = res?.ok
+          ? (res.profiles || []).map(mapProfile)
+          : DEMO.map(mapProfile);
+        this.applyFilters();
+      } finally { this.loading = false; }
+    },
+
+    applyFilters() {
+      this.filtered = this.profiles.filter(p => {
+        if (this.fRegion && p.region !== this.fRegion) return false;
+        if (this.fVerified && !p.verifiziert) return false;
+        if (this.fAge) {
+          const [a,b] = this.fAge.split("-").map(Number);
+          if (p.alter < a || p.alter > b) return false;
+        }
+        return true;
+      });
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  PROFIL ERSTELLEN
+    // ════════════════════════════════════════════════════════
+    next1() {
+      if (!this.form.name.trim() || this.form.name.trim().length < 2) { this.err="Vorname zu kurz."; return; }
+      if (!this.form.age || parseInt(this.form.age) < 18)             { this.err="Mindestalter 18."; return; }
+      if (!this.form.region)                                           { this.err="Bitte Region wählen."; return; }
+      this.err=""; this.step=2;
+    },
+    next2() {
+      if (!this.form.fb.includes("facebook.com")) { this.err="Kein gültiger Facebook-Link."; return; }
+      this.err=""; this.step=3;
+    },
+    async submitProfile() {
+      if (!this.form.consent) { this.err="Bitte Einwilligung bestätigen."; return; }
+      this.loading=true; this.loadingMsg="Profil wird gespeichert…";
+      try {
+        // Bild-URLs: erstes Bild = Hauptbild, zweites = Zusatzbild
+        const bild1 = this.form.bilder[0]?.url || this.form.bild || "";
+        const bild2 = this.form.bilder[1]?.url || "";
+
+        const res = await api({
+          a:"r", vorname:this.form.name.trim(), alter:parseInt(this.form.age),
+          region:this.form.region, fb:this.form.fb.trim(),
+          bild: bild1, bild2: bild2,
+          bio:this.form.bio||"", dsgvo:"true"
+        });
+        if (res?.ok) {
+          const p = {
+            vorname: this.form.name, alter: parseInt(this.form.age),
+            region: this.form.region, fb: this.form.fb,
+            bild: bild1, bild2: bild2, bio: this.form.bio, token: res.token,
+            bild_url: bild1 || null,
+            eisbrecher: this.form.bio || null,
+            fb_link: this.form.fb,
+          };
+          localStorage.setItem("ssc_token", res.token);
+          localStorage.setItem("ssc_profile", JSON.stringify(p));
+          this.myProfile = p;
+          this.magic = window.location.origin + window.location.pathname + "?edit=" + res.token;
+          this.view = "success";
+        } else if (res?.code === 409) {
+          this.err = "Du hast bereits ein Profil mit diesem Facebook-Link.";
+        } else {
+          this.err = res?.error || "Fehler beim Speichern.";
+        }
+      } finally { this.loading=false; }
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  EIGENES PROFIL
+    // ════════════════════════════════════════════════════════
+    async loadByToken(token) {
+      this.loading=true; this.loadingMsg="Profil wird geladen…";
+      try {
+        const res = await api({ a:"v", t:token });
+        if (res?.ok) {
+          // Backend-Felder auf Frontend-Template-Felder mappen
+          const p = {
+            ...res, token,
+            bild_url:   res.bild  || "",
+            bild2_url:  res.bild2 || "",
+            eisbrecher: res.bio   || "",
+            fb_link:    res.fb    || "",
+          };
+          localStorage.setItem("ssc_token", token);
+          localStorage.setItem("ssc_profile", JSON.stringify(p));
+          this.myProfile = p;
+          this.view = "myprofile";
+        } else {
+          this.showToast("❌ Kein Profil mit diesem Link.");
+          this.view = "lock";
+        }
+      } finally { this.loading=false; }
+    },
+
+    async saveMyProfile() {
+      if (!this.myProfile?.token) return;
+      this.loading=true; this.loadingMsg="Wird gespeichert…";
+      try {
+        const res = await api({
+          a:"u", t:this.myProfile.token,
+          vorname: this.myProfile.vorname,
+          bild:    this.myProfile.bild_url   || "",
+          bild2:   this.myProfile.bild2_url  || "",
+          bio:     this.myProfile.eisbrecher || "",
+        });
+        if (res?.ok) {
+          localStorage.setItem("ssc_profile", JSON.stringify(this.myProfile));
+          this.showToast("✅ Gespeichert! Wartet auf Admin-Freigabe.");
+        } else {
+          this.showToast("❌ " + (res?.error||"Fehler."));
+        }
+      } finally { this.loading=false; }
+    },
+
+    async deleteMyProfile() {
+      if (!confirm("Profil wirklich löschen?")) return;
+      this.loading=true; this.loadingMsg="Wird gelöscht…";
+      try {
+        if (this.myProfile?.token) await api({ a:"d", t:this.myProfile.token });
+        localStorage.removeItem("ssc_token");
+        localStorage.removeItem("ssc_profile");
+        this.myProfile=null; this.view="gallery";
+        this.showToast("🗑️ Profil gelöscht.");
+      } finally { this.loading=false; }
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  ADMIN LOGIN
+    //  Zugang: yoursite.com/#admin
+    //  PIN wird SHA-256 gehasht — Klartext verlässt NIE das Gerät!
+    // ════════════════════════════════════════════════════════
+    async checkAdmin() {
+      if (!this.adminPin.trim()) return;
+      this.loading=true; this.loadingMsg="PIN wird geprüft…";
+      try {
+        const hash = await sha256(this.adminPin.trim()); // PIN wird gehasht!
+        this.adminPin = "";                              // PIN sofort aus RAM löschen
+        const res = await api({ a:"ax", s:"login", h:hash });
+        if (res?.ok && res.st) {
+          this.isAdmin   = true;
+          this.adminST   = res.st;  // Session-Token nur im RAM — nie in localStorage!
+          this.view      = "admin";
+          this.adminTab  = "queue";
+          await this.adminLoadQueue();
+        } else {
+          this.adminErr = true;
+        }
+      } finally { this.loading=false; }
+    },
+
+    async adminLogout() {
+      if (this.adminST) await api({ a:"ax", s:"out", st:this.adminST });
+      this.isAdmin=false; this.adminST=null;
+      this.adminQueue=[]; this.adminProfiles=[];
+      this.view="lock";
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  ADMIN AKTIONEN (jede sendet Session-Token mit!)
+    // ════════════════════════════════════════════════════════
+    async adminLoadQueue() {
+      const res = await api({ a:"ax", s:"q", st:this.adminST });
+      this.adminQueue = res?.ok ? (res.queue||[]) : [];
+    },
+
+    async adminLoadAll() {
+      const res = await api({ a:"ax", s:"all", st:this.adminST, f:this.adminFilter });
+      this.adminProfiles = res?.ok ? (res.profiles||[]) : [];
+    },
+
+    async adminApprove(i) {
+      const p = this.adminQueue[i];
+      const res = await api({ a:"ax", s:"ok", st:this.adminST, id:p.id });
+      if (res?.ok) {
+        this.adminQueue.splice(i,1);
+        this.profiles.push({...p, verifiziert:true, status:"Aktiv"});
+        this.applyFilters();
+        this.showToast("✅ Freigegeben!");
+      } else if (res?.code===401) {
+        this.showToast("⏰ Session abgelaufen. Bitte neu einloggen."); this.adminLogout();
+      }
+    },
+
+    async adminBan(i) {
+      const p = this.adminQueue[i];
+      if (!confirm("Profil von "+p.vorname+" sperren?")) return;
+      const res = await api({ a:"ax", s:"ban", st:this.adminST, id:p.id });
+      if (res?.ok) { this.adminQueue.splice(i,1); this.showToast("🚫 Gesperrt."); }
+    },
+
+    async adminRemove(i) {
+      const p = this.adminQueue[i];
+      if (!confirm("Profil wirklich löschen?")) return;
+      const res = await api({ a:"ax", s:"del", st:this.adminST, id:p.id });
+      if (res?.ok) { this.adminQueue.splice(i,1); this.showToast("🗑️ Gelöscht."); }
+    },
+
+    async adminSetStatus(id, status) {
+      const s   = status==="Aktiv" ? "ok" : "ban";
+      const res = await api({ a:"ax", s, st:this.adminST, id });
+      if (res?.ok) {
+        await this.adminLoadAll();
+        await this.loadProfiles();
+        this.showToast(status==="Aktiv"?"✅ Aktiviert!":"🚫 Gesperrt.");
+      }
+    },
+
+    async adminRemoveById(id) {
+      if (!confirm("Profil wirklich löschen?")) return;
+      const res = await api({ a:"ax", s:"del", st:this.adminST, id });
+      if (res?.ok) { await this.adminLoadAll(); await this.loadProfiles(); this.showToast("🗑️ Gelöscht."); }
+    },
+
+    async adminChangeCode() {
+      if (!this.newCode.trim()) return;
+      this.loading=true;
+      try {
+        const plain = this.newCode.trim().toUpperCase();
+        const hash  = await sha256(plain); // Code wird gehasht!
+        const res   = await api({ a:"ax", s:"code", st:this.adminST, h:hash });
+        if (res?.ok) {
+          this.currentCode = plain;
+          this.codeChanged = true;
+          this.newCode = "";
+          this.showToast("🔄 Code gewechselt: " + plain);
+          setTimeout(()=>this.codeChanged=false, 6000);
+        }
+      } finally { this.loading=false; }
+    },
+
+    openFB(url) { window.open(url,"_blank","noopener"); },
+
+    // ════════════════════════════════════════════════════════
+    //  BILD-UPLOAD (imgBB)
+    // ════════════════════════════════════════════════════════
+
+    handleDrop(e) {
+      this.dragover = false;
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+      if (files.length) this.uploadFiles(files);
+    },
+
+    handleFiles(e) {
+      const files = Array.from(e.target.files);
+      this.uploadFiles(files);
+      e.target.value = ""; // Input zurücksetzen für erneuten Upload
+    },
+
+    async uploadFiles(files) {
+      const remaining = 2 - this.form.bilder.length;
+      const toUpload  = files.slice(0, remaining);
+      if (!toUpload.length) return;
+
+      this.uploading  = true;
+      this.uploadErr  = "";
+
+      for (const file of toUpload) {
+        // Größenprüfung (max 5 MB)
+        if (file.size > 5 * 1024 * 1024) {
+          this.uploadErr = "Bild zu groß (max. 5 MB).";
+          continue;
+        }
+
+        try {
+          // Bild im Browser komprimieren (max 1200px breit)
+          const compressed = await this.compressImage(file, 1200, 0.82);
+
+          // Zu imgBB hochladen
+          const formData = new FormData();
+          formData.append("image", compressed.split(",")[1]); // Base64 ohne Prefix
+          formData.append("name", "ssc_" + Date.now());
+
+          const res = await fetch(
+            "https://api.imgbb.com/1/upload?key=" + IMGBB_KEY,
+            { method: "POST", body: formData }
+          );
+          const data = await res.json();
+
+          if (data.success) {
+            this.form.bilder.push({
+              url:   data.data.url,          // Volle Auflösung
+              thumb: data.data.thumb?.url || data.data.url, // Vorschau
+            });
+          } else {
+            this.uploadErr = "Upload fehlgeschlagen. Versuche es erneut.";
+          }
+        } catch(e) {
+          this.uploadErr = "Fehler beim Upload: " + e.message;
+        }
+      }
+      this.uploading = false;
+    },
+
+    // Bild im Browser komprimieren (läuft komplett lokal, kein Server nötig)
+    compressImage(file, maxWidth, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            // Seitenverhältnis beibehalten
+            let w = img.width, h = img.height;
+            if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    },
+
+    removeImage(i) {
+      this.form.bilder.splice(i, 1);
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════════════════════════════
+    openDetail(p)  { this.sel=p; this.view="detail"; },
+    connectFB(p)   {
+      const u = (p.fb||"").split("/").filter(Boolean).pop();
+      window.open("https://m.me/"+u,"_blank","noopener");
+    },
+    openCreate() {
+      this.form={name:"",age:"",region:"",fb:"",bild:"",bio:"",consent:false,bilder:[]};
+      this.uploadErr=""; this.step=1; this.err=""; this.view="create";
+    },
+    shareMagicLink() {
+      if (navigator.share) navigator.share({title:"Mein Sachsen Singles Profil",url:this.magic});
+      else { navigator.clipboard?.writeText(this.magic); this.showToast("📋 Link kopiert!"); }
+    },
+    logout() {
+      localStorage.removeItem("ssc_code");
+      this.view="lock";
+    },
+    hue(id)   { return (parseInt(id)||0)*53%360; },
+    hashColor(id) {
+      // Funktioniert mit UUID-Strings und Zahlen
+      const s = String(id);
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xFFFFFF;
+      return h % 360;
+    },
+    ago(iso)  {
+      if (!iso) return "";
+      const d = Math.floor((new Date()-new Date(iso))/60000);
+      if (d<1) return "Gerade eben";
+      if (d<60) return "vor "+d+" Min.";
+      if (d<1440) return "vor "+Math.floor(d/60)+" Std.";
+      return new Date(iso).toLocaleDateString("de-DE");
+    },
+    showToast(msg, ms=3000) {
+      this.toastMsg=msg; this.toast=true;
+      setTimeout(()=>this.toast=false, ms);
+    },
+  };
+}
+
+// ── Alpine.js Registrierung ───────────────────────────────
+// Muss vor Alpine's Initialisierung laufen → alpine:init Event
+document.addEventListener('alpine:init', () => {
+  Alpine.data('app', app);
+});
+</script>
+</body>
+</html>
