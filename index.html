@@ -1,4 +1,3 @@
-<!-- https://script.google.com/macros/s/AKfycbzyzmpaN69QNHKBNjgy3T1DWsRv3A7n0DjUqcUCvNkH3i1wzz4sb5EIaCOdFIW-xLGN/exec -->
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -124,6 +123,10 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
 .spinner{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner-green{border-color:rgba(0,131,62,.2);border-top-color:var(--g);}
+/* ── Upload-Zone ── */
+.upload-zone{background:var(--g0);border:2px dashed var(--g4);border-radius:13px;
+  padding:1.4rem;text-align:center;cursor:pointer;transition:.2s;}
+.upload-zone:hover,.upload-drag{background:var(--g1);border-color:var(--g);}
 /* Toast */
 .toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--gray9);color:#fff;padding:.75rem 1.4rem;border-radius:12px;font-size:.85rem;font-weight:600;z-index:999;box-shadow:var(--shadowlg);white-space:nowrap;}
 @keyframes fadeUp{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
@@ -171,7 +174,7 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
       <span x-show="!loading">Eintreten →</span>
       <span x-show="loading" class="spinner"></span>
     </button>
-    <button class="btn btn-dark" style="margin-top:.6rem;background:#1a1a1a;" @click="view='adminlogin'">🛡️ Admin-Bereich</button>
+    <!-- Kein Admin-Button — Admin öffnet yoursite.com/#admin -->
     <p style="text-align:center;font-size:.73rem;color:var(--gray3);margin-top:1.2rem;">Code im Pinpost der <strong style="color:var(--g7);">Sachsen Singles Connect</strong> Gruppe</p>
   </div>
   <p style="color:rgba(255,255,255,.35);font-size:.7rem;margin-top:1.2rem;">🔒 SSL · DSGVO · Kostenlos</p>
@@ -359,7 +362,7 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
       </div>
       <div style="display:flex;gap:.45rem;align-items:center;">
         <button x-show="myProfile" class="btn btn-soft btn-sm" @click="view='myprofile'">👤 Mein Profil</button>
-        <button x-show="isAdmin" class="btn btn-soft btn-sm" @click="view='admin'" style="background:#1a1a1a;border-color:#333;color:#fff;">🛡️</button>
+        <!-- Admin-Link nicht in der Galerie — Admin öffnet yoursite.com/#admin -->
         <button class="btn btn-soft btn-sm" @click="logout()" style="color:var(--gray5);padding:.5rem .7rem;">🚪</button>
       </div>
     </div>
@@ -388,13 +391,14 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
       <button class="btn btn-soft btn-sm" @click="view='myprofile'" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;">Bearbeiten ✏️</button>
     </div>
   </div>
-  <div x-show="isAdmin&&adminQueue.length>0" style="max-width:700px;margin:.9rem auto 0;padding:0 1.2rem;">
+  <!-- Queue-Banner nur sichtbar wenn Admin eingeloggt -->
+  <div x-show="isAdmin && adminQueue.length > 0" style="max-width:700px;margin:.9rem auto 0;padding:0 1.2rem;">
     <div style="background:#1a1a1a;border-radius:13px;padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" @click="view='admin';adminTab='queue'">
       <div style="display:flex;align-items:center;gap:.6rem;color:#fff;">
         <span style="background:var(--red);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;" x-text="adminQueue.length"></span>
         <span style="font-size:.85rem;font-weight:600;">Neue Profile warten auf Freigabe</span>
       </div>
-      <span style="color:var(--gold);font-size:.82rem;">Zur Queue →</span>
+      <span style="color:var(--gold);font-size:.82rem;">Admin-Panel →</span>
     </div>
   </div>
   <div class="sec-title">Singles in Sachsen <span class="count" x-text="filtered.length+' Profile'"></span></div>
@@ -404,6 +408,7 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
         <div class="card-img">
           <div class="card-avatar" :style="`background:hsl(${hashColor(p.id)},38%,86%);color:hsl(${hashColor(p.id)},45%,28%)`" x-text="p.vorname.charAt(0)"></div>
           <img x-show="p.bild_url" :src="p.bild_url" @error="p.bild_url=null" loading="lazy"/>
+          <div x-show="p.bild2_url" style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);border-radius:6px;padding:2px 6px;font-size:.65rem;color:#fff;font-weight:700;">+1 📷</div>
           <div class="badge-v" x-show="p.verifiziert">✓ Verifiziert</div>
         </div>
         <div class="card-body">
@@ -433,6 +438,9 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
       <div>
         <div x-show="!sel.bild_url" class="detail-avatar" :style="`background:hsl(${hashColor(sel.id)},38%,86%);color:hsl(${hashColor(sel.id)},45%,28%)`" x-text="sel.vorname.charAt(0)"></div>
         <img x-show="sel.bild_url" class="detail-img" :src="sel.bild_url" :alt="sel.vorname" @error="sel.bild_url=null"/>
+        <!-- 2. Foto im Detail -->
+        <img x-show="sel.bild2_url" :src="sel.bild2_url" :alt="sel.vorname + ' Foto 2'"
+             class="detail-img" style="margin-top:.6rem;" @error="sel.bild2_url=null"/>
         <div style="display:flex;align-items:baseline;justify-content:space-between;">
           <h2 class="serif" style="font-size:1.9rem;font-weight:700;" x-text="sel.vorname+', '+sel.alter"></h2>
           <span x-show="sel.verifiziert" style="color:var(--g);font-size:.82rem;font-weight:600;">✅</span>
@@ -476,7 +484,58 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
       <h2 class="serif" style="font-size:1.5rem;font-weight:700;margin-bottom:.2rem;">Dein Facebook-Link 🔗</h2>
       <p style="color:var(--gray5);font-size:.85rem;margin-bottom:1.3rem;">Öffne dein Profil und kopiere die URL aus dem Browser.</p>
       <div class="fgroup"><label class="flabel">Facebook-Link *</label><input class="finput" type="url" x-model="form.fb" placeholder="https://facebook.com/deinname"/></div>
-      <div class="fgroup"><label class="flabel">Bild-URL (optional)</label><input class="finput" type="url" x-model="form.img" placeholder="https://..."/></div>
+      <!-- ── BILD-UPLOAD ── -->
+      <div class="fgroup">
+        <label class="flabel">Fotos (optional, max. 2 Bilder)</label>
+
+        <!-- Upload-Zone -->
+        <div x-show="form.bilder.length < 2"
+             class="upload-zone"
+             :class="{'upload-drag': dragover}"
+             @click="$refs.fileInput.click()"
+             @dragover.prevent="dragover=true"
+             @dragleave="dragover=false"
+             @drop.prevent="handleDrop($event)">
+          <input type="file" x-ref="fileInput" accept="image/*" multiple
+                 style="display:none" @change="handleFiles($event)"/>
+          <div x-show="!uploading">
+            <div style="font-size:1.8rem;margin-bottom:.35rem;">📸</div>
+            <div style="font-weight:600;font-size:.88rem;color:var(--g7);">Foto auswählen</div>
+            <div style="font-size:.75rem;color:var(--gray5);margin-top:.2rem;">Tippe hier oder ziehe ein Bild rein · JPG/PNG · max. 5 MB</div>
+          </div>
+          <div x-show="uploading" style="text-align:center;">
+            <div class="spinner spinner-green" style="margin:0 auto .5rem;width:28px;height:28px;"></div>
+            <div style="font-size:.82rem;color:var(--g7);font-weight:600;">Wird hochgeladen…</div>
+          </div>
+        </div>
+
+        <!-- Vorschau der hochgeladenen Bilder -->
+        <div x-show="form.bilder.length > 0" style="display:flex;gap:.6rem;margin-top:.7rem;flex-wrap:wrap;">
+          <template x-for="(img, i) in form.bilder" :key="i">
+            <div style="position:relative;width:90px;height:90px;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);">
+              <img :src="img.url" style="width:100%;height:100%;object-fit:cover;"/>
+              <button @click.prevent="removeImage(i)"
+                style="position:absolute;top:4px;right:4px;background:rgba(220,38,38,.9);
+                       color:#fff;border:none;border-radius:50%;width:22px;height:22px;
+                       font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+              <div x-show="i===0" style="position:absolute;bottom:0;left:0;right:0;
+                   background:rgba(0,0,0,.55);color:#fff;font-size:.6rem;
+                   font-weight:600;text-align:center;padding:2px;">HAUPT</div>
+            </div>
+          </template>
+          <!-- Zweites Foto hinzufügen -->
+          <div x-show="form.bilder.length === 1"
+               @click="$refs.fileInput.click()"
+               style="width:90px;height:90px;border-radius:10px;border:2px dashed var(--g4);
+                      display:flex;flex-direction:column;align-items:center;justify-content:center;
+                      cursor:pointer;color:var(--g7);font-size:.72rem;font-weight:600;gap:.2rem;">
+            <span style="font-size:1.4rem;">+</span>
+            <span>2. Foto</span>
+          </div>
+        </div>
+
+        <p x-show="uploadErr" style="color:var(--red);font-size:.78rem;margin-top:.4rem;" x-text="uploadErr"></p>
+      </div>
       <div class="fgroup"><label class="flabel">Eisbrecher (optional)</label><textarea class="finput" x-model="form.bio" rows="3" placeholder="Was liebst du an Sachsen am meisten?" style="resize:none;"></textarea></div>
       <p class="err" x-show="err" x-text="err"></p>
       <div style="display:flex;gap:.6rem;"><button class="btn btn-soft" @click="step=1;err=''" style="flex:1;">← Zurück</button><button class="btn btn-green" @click="next2()" style="flex:2;">Weiter →</button></div>
@@ -572,221 +631,219 @@ select.fsel{background:var(--gray0);border:1.5px solid var(--gray3);border-radiu
 
 <script>
 // ════════════════════════════════════════════════════════════
-//  ⚙️  KONFIGURATION — Hier deine zwei Werte eintragen!
-// ════════════════════════════════════════════════════════════
-const CONFIG = {
-  // ✅ Google Apps Script Web-App URL:
-  // API_URL: "https://script.google.com/macros/s/AKfycbxW9WEghw-lKYybRKyRcETSklbF1-EotGrutg3f4yT_DS6T6hotMwT0JlIUTZl-F4MQ/exec",
-
-   API_URL: "https://script.google.com/macros/s/AKfycbzyzmpaN69QNHKBNjgy3T1DWsRv3A7n0DjUqcUCvNkH3i1wzz4sb5EIaCOdFIW-xLGN/exec",
-
-  // ✅ API-Key (muss mit Script-Property API_KEY übereinstimmen):
-  API_KEY: "admin-key-2026-ssc",
-
-  // Admin-PIN (NUR für lokalen Demo-Modus — im echten Betrieb wird der PIN
-  // im Google Apps Script als Property gespeichert und geprüft):
-  ADMIN_PIN: "1234",
-
-  // ✅ Demo-Modus deaktiviert — App nutzt das echte Backend!
-  DEMO_MODE: false,
-
-  // 🐛 Debug: true = API-Fehler werden als Popup angezeigt (zum Testen)
-  DEBUG: true,
-};
+//  SACHSEN SINGLES CONNECT — Frontend v3.0
+//  SICHERHEIT:
+//  ✅ Kein API-Key, kein Passwort, kein Admin-PIN im Code
+//  ✅ Admin nur via geheimer URL: yoursite.com/#admin
+//  ✅ Admin-Session nur im RAM (nie in localStorage)
+//  ✅ Kein Admin-Button für normale User sichtbar
+//  ✅ PIN wird SHA-256 gehasht bevor er das Gerät verlässt
+//  ✅ Wochencode wird SHA-256 gehasht bevor er das Gerät verlässt
 // ════════════════════════════════════════════════════════════
 
-// ── API-Layer: Alle Backend-Calls an einer Stelle ──
-const API = {
+// ── Konfiguration ────────────────────────────────────────
+const GAS = "https://script.google.com/macros/s/AKfycbxW9WEghw-lKYybRKyRcETSklbF1-EotGrutg3f4yT_DS6T6hotMwT0JlIUTZl-F4MQ/exec";
 
-  async get(action, params = {}) {
-    if (CONFIG.DEMO_MODE) return null;
-    try {
-      const url = new URL(CONFIG.API_URL);
-      url.searchParams.set("action", action);
-      url.searchParams.set("key", CONFIG.API_KEY);
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    } catch(e) {
-      if (CONFIG.DEBUG) alert("🐛 API GET Fehler [" + action + "]:\n" + e.message);
-      return { success: false, error: e.message };
-    }
-  },
+// imgBB: kostenloser Bild-Hosting-Dienst
+// API-Key hier eintragen nach Registrierung auf imgbb.com (kostenlos):
+// → imgbb.com → Account → API → Key generieren
+const IMGBB_KEY = "DEINEN_IMGBB_KEY_HIER"; // ← eintragen!
+// Hinweis: imgBB API-Keys sind für Client-Nutzung designed (kein Sicherheitsrisiko).
+// Schlimmstenfalls kann jemand Bilder auf dein imgBB-Konto hochladen.
 
-  async post(action, body = {}) {
-    if (CONFIG.DEMO_MODE) return null;
-    try {
-      const res = await fetch(CONFIG.API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, api_key: CONFIG.API_KEY, ...body }),
-        mode: "cors",
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
-    } catch(e) {
-      if (CONFIG.DEBUG) alert("🐛 API POST Fehler [" + action + "]:\n" + e.message + "\n\nMögliche Ursachen:\n- CORS-Problem mit Google Apps Script\n- Script nicht korrekt deployed\n- API_KEY stimmt nicht überein");
-      return { success: false, error: e.message };
-    }
-  },
+// ── SHA-256 Helfer (läuft lokal im Browser) ───────────────
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
 
-  // Admin-Login: PIN wird ans Backend geschickt — niemals lokal geprüft!
-  async adminLogin(pin) {
-    if (CONFIG.DEMO_MODE) return { success: pin === "1234" };
-    return await this.post("adminlogin", { pin });
-  },
-
-  // SHA-256 des Wochencodes lokal berechnen (Code geht NIE übers Netz!)
-  async hashCode(plain) {
-    const buf = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(plain)
-    );
-    return Array.from(new Uint8Array(buf))
-      .map(b => b.toString(16).padStart(2, "0")).join("");
+// ── API-Aufruf (alle Calls als GET, kein CORS-Problem) ────
+async function api(params) {
+  try {
+    const url = new URL(GAS);
+    Object.entries(params).forEach(([k,v]) => {
+      if (v !== null && v !== undefined) url.searchParams.set(k, String(v));
+    });
+    const res  = await fetch(url.toString());
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } catch(e) {
+    console.error("API Fehler:", params.a, e.message);
+    return { ok: false, error: e.message };
   }
-};
+}
 
-// ── Demo-Daten (werden nur im DEMO_MODE genutzt) ──
-const DEMO_PROFILES = [
-  {id:1,vorname:'Sophie', alter:27,region:'Dresden',   fb_link:'https://facebook.com/demo1',bild_url:null,eisbrecher:'Wandern im Erzgebirge und Kaffee auf der Brühlschen Terrasse.',verifiziert:true},
-  {id:2,vorname:'Lukas',  alter:34,region:'Leipzig',   fb_link:'https://facebook.com/demo2',bild_url:null,eisbrecher:'Weltmeister im Grillieren, Amateur im Tanzen.',verifiziert:true},
-  {id:3,vorname:'Jana',   alter:29,region:'Chemnitz',  fb_link:'https://facebook.com/demo3',bild_url:null,eisbrecher:null,verifiziert:false},
-  {id:4,vorname:'Tobias', alter:42,region:'Zwickau',   fb_link:'https://facebook.com/demo4',bild_url:null,eisbrecher:'Leidenschaftlicher Motorradfahrer.',verifiziert:true},
-  {id:5,vorname:'Marie',  alter:31,region:'Erzgebirge',fb_link:'https://facebook.com/demo5',bild_url:null,eisbrecher:null,verifiziert:false},
-  {id:6,vorname:'Robert', alter:38,region:'Görlitz',   fb_link:'https://facebook.com/demo6',bild_url:null,eisbrecher:'Stadtführer aus Überzeugung!',verifiziert:true},
-];
-const DEMO_QUEUE = [
-  {id:7,vorname:'Anna',   alter:25,region:'Dresden',   fb_link:'https://facebook.com/anna25',  eisbrecher:'Yoga, Kaffee, Regen.',timestamp:new Date().toISOString()},
-  {id:8,vorname:'Markus', alter:45,region:'Leipzig',   fb_link:'https://facebook.com/markus45',eisbrecher:null,timestamp:new Date().toISOString()},
+// ── Demo-Daten (nur wenn GAS nicht erreichbar) ────────────
+const DEMO = [
+  {id:1,vorname:"Sophie",alter:27,region:"Dresden",bild:null,bio:"Wandern im Erzgebirge.",verifiziert:true,fb:"https://facebook.com/demo1"},
+  {id:2,vorname:"Lukas", alter:34,region:"Leipzig",bild:null,bio:"Weltmeister im Grillieren.",verifiziert:true,fb:"https://facebook.com/demo2"},
+  {id:3,vorname:"Jana",  alter:29,region:"Chemnitz",bild:null,bio:null,verifiziert:false,fb:"https://facebook.com/demo3"},
+  {id:4,vorname:"Tobias",alter:42,region:"Zwickau",bild:null,bio:"Leidenschaftlicher Motorradfahrer.",verifiziert:true,fb:"https://facebook.com/demo4"},
+  {id:5,vorname:"Marie", alter:31,region:"Erzgebirge",bild:null,bio:null,verifiziert:false,fb:"https://facebook.com/demo5"},
+  {id:6,vorname:"Robert",alter:38,region:"Görlitz",bild:null,bio:"Stadtführer aus Überzeugung!",verifiziert:true,fb:"https://facebook.com/demo6"},
 ];
 
+// ════════════════════════════════════════════════════════════
+//  APP STATE
+// ════════════════════════════════════════════════════════════
 function app() {
   return {
-    // State
-    view: 'lock', loading: false, loadingMsg: 'Lädt…',
-    toast: false, toastMsg: '',
-    code: '', lockErr: false,
-    fRegion: '', fAge: '', fVerified: false,
-    sel: null, myProfile: null, magic: '',
-    step: 1, err: '',
-    form: {name:'',age:'',region:'',fb:'',img:'',bio:'',consent:false},
+    // Navigation
+    view: "lock",
 
-    // Profile
+    // Loading / Toast
+    loading: false,
+    loadingMsg: "Lädt…",
+    toast: false,
+    toastMsg: "",
+
+    // Lock
+    code: "",
+    lockErr: false,
+
+    // Gallery
     profiles: [],
     filtered: [],
-    allAdminProfiles: [],
+    fRegion: "",
+    fAge: "",
+    fVerified: false,
 
-    // Admin
+    // Profil-Detail
+    sel: null,
+
+    // Eigenes Profil
+    myProfile: null,
+    magic: "",
+
+    // Erstellen-Wizard
+    step: 1,
+    err: "",
+    form: { name:"", age:"", region:"", fb:"", bild:"", bio:"", consent:false,
+          bilder: [],
+        },
+
+    // Upload
+    uploading: false,
+    uploadErr: "",
+    dragover: false,
+
+    // ──────────────────────────────────────────────────────────
+    //  ADMIN — alles nur im RAM, nie in localStorage!
+    // ──────────────────────────────────────────────────────────
     isAdmin: false,
-    adminPin: '', adminErr: false,
-    adminTab: 'queue',
-    adminFilter: '', adminRegionFilter: '',
+    adminST: null,          // Session-Token (nur RAM)
+    adminPin: "",
+    adminErr: false,
+    adminTab: "queue",
     adminQueue: [],
-    newWeekCode: '', currentWeekCode: '', codeChanged: false,
+    adminProfiles: [],
+    adminFilter: "",
+    adminRegion: "",
+    newCode: "",
+    currentCode: "",
+    codeChanged: false,
 
-    // Computed stats
-    get stats() {
-      const all = this.allAdminProfiles;
-      return {
-        total:    all.length,
-        aktiv:    all.filter(p=>p.status==='Aktiv').length,
-        gesperrt: all.filter(p=>p.status==='Gesperrt').length,
-        neu:      this.adminQueue.length,
-      };
-    },
-    get regionStats() {
-      const regions = ['Dresden','Leipzig','Chemnitz','Zwickau','Erzgebirge','Görlitz','Plauen','Sonstige'];
-      return regions.map(r=>({name:r, count:this.profiles.filter(p=>p.region===r).length}))
-                    .filter(r=>r.count>0).sort((a,b)=>b.count-a.count);
-    },
-    get ageStats() {
-      const groups = [{label:'18–29',min:18,max:29},{label:'30–39',min:30,max:39},{label:'40–49',min:40,max:49},{label:'50+',min:50,max:99}];
-      return groups.map(g=>({label:g.label, count:this.profiles.filter(p=>p.alter>=g.min&&p.alter<=g.max).length}));
-    },
+    // ── Computed ──────────────────────────────────────────────
     get filteredAdmin() {
-      return this.allAdminProfiles.filter(p=>{
-        if(this.adminFilter && p.status!==this.adminFilter) return false;
-        if(this.adminRegionFilter && p.region!==this.adminRegionFilter) return false;
+      return this.adminProfiles.filter(p => {
+        if (this.adminFilter && p.status !== this.adminFilter) return false;
+        if (this.adminRegion && p.region !== this.adminRegion) return false;
         return true;
       });
     },
+    get stats() {
+      const all = this.adminProfiles;
+      return {
+        total:    all.length,
+        aktiv:    all.filter(p=>p.status==="Aktiv").length,
+        gesperrt: all.filter(p=>p.status==="Gesperrt").length,
+        queue:    this.adminQueue.length,
+      };
+    },
+    get regionStats() {
+      const regs = ["Dresden","Leipzig","Chemnitz","Zwickau","Erzgebirge","Görlitz","Plauen","Sonstige"];
+      return regs.map(r=>({name:r,count:this.profiles.filter(p=>p.region===r).length}))
+                 .filter(r=>r.count>0).sort((a,b)=>b.count-a.count);
+    },
+    get ageStats() {
+      return [{label:"18–29",min:18,max:29},{label:"30–39",min:30,max:39},
+              {label:"40–49",min:40,max:49},{label:"50+",min:50,max:99}]
+        .map(g=>({label:g.label,count:this.profiles.filter(p=>p.alter>=g.min&&p.alter<=g.max).length}));
+    },
 
-    // ── INIT ──
+    // ════════════════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════════════════
     async init() {
-      const savedCode    = localStorage.getItem('ssc_code');
-      const savedProfile = localStorage.getItem('ssc_profile');
-      const savedAdmin   = localStorage.getItem('ssc_admin');
+      // Admin-Zugang nur via geheimer URL-Hash: yoursite.com/#admin
+      // URL-Hashes werden NIEMALS an Server übertragen (Browser-Standard)!
+      if (window.location.hash === "#admin") {
+        history.replaceState(null, "", window.location.pathname); // Hash aus URL entfernen
+        this.view = "adminlogin";
+        return;
+      }
 
-      if (savedProfile) this.myProfile = JSON.parse(savedProfile);
-      if (savedAdmin === '1') this.isAdmin = true;
+      // Normaler User: gespeicherten Code prüfen
+      const savedCode = localStorage.getItem("ssc_code");
+      const savedProf = localStorage.getItem("ssc_profile");
+      if (savedProf) {
+        try { this.myProfile = JSON.parse(savedProf); } catch(e) {}
+      }
 
       // URL-Parameter: Edit-Token für direkten Zugang
-      const params = new URLSearchParams(window.location.search);
-      const editToken = params.get('edit');
+      const editToken = new URLSearchParams(window.location.search).get("edit");
       if (editToken) {
-        await this.loadProfileByToken(editToken);
+        await this.loadByToken(editToken);
         return;
       }
 
       if (savedCode) {
-        this.view = 'gallery';
+        this.view = "gallery";
         await this.loadProfiles();
       }
     },
 
-    // ── WOCHENCODE PRÜFEN ──
+    // ════════════════════════════════════════════════════════
+    //  WOCHENCODE
+    // ════════════════════════════════════════════════════════
     async checkCode() {
       if (!this.code.trim()) return;
-      this.loading = true;
-      this.loadingMsg = 'Code wird geprüft…';
-
+      this.loading = true; this.loadingMsg = "Code wird geprüft…";
       try {
-        if (CONFIG.DEMO_MODE) {
-          // Demo: Codes direkt prüfen
-          const valid = ['SACHSEN','sachsen','Sachsen'].includes(this.code.trim());
-          if (valid) {
-            localStorage.setItem('ssc_code', this.code.trim());
-            this.view = 'gallery';
-            await this.loadProfiles();
-          } else {
-            this.lockErr = true;
-            this.code = '';
-          }
+        // Code wird gehasht — Klartext verlässt NIE das Gerät!
+        const hash = await sha256(this.code.trim());
+        const res  = await api({ a:"cc", h:hash });
+        if (res?.valid) {
+          localStorage.setItem("ssc_code", this.code.trim());
+          this.view = "gallery";
+          await this.loadProfiles();
         } else {
-          // Echtes System: SHA-256-Hash erzeugen und gegen API prüfen
-          const hash = await API.hashCode(this.code.trim());
-          const res = await API.get('checkcode', { hash });
-          if (res?.valid) {
-            localStorage.setItem('ssc_code', this.code.trim());
-            this.view = 'gallery';
-            await this.loadProfiles();
-          } else {
-            this.lockErr = true;
-            this.code = '';
-          }
+          this.lockErr = true;
+          this.code = "";
         }
-      } finally {
-        this.loading = false;
-      }
+      } finally { this.loading = false; }
     },
 
-    // ── PROFILE LADEN ──
+    // ════════════════════════════════════════════════════════
+    //  PROFILE LADEN
+    // ════════════════════════════════════════════════════════
     async loadProfiles() {
-      this.loading = true;
-      this.loadingMsg = 'Profile werden geladen…';
+      this.loading = true; this.loadingMsg = "Profile werden geladen…";
       try {
-        if (CONFIG.DEMO_MODE) {
-          this.profiles = [...DEMO_PROFILES];
-        } else {
-          const res = await API.get('profiles');
-          if (res?.success) this.profiles = res.profiles;
-        }
+        const res = await api({ a:"p" });
+        // Backend gibt: bild, bio, fb → Frontend-Template braucht: bild_url, eisbrecher, fb_link
+        const mapProfile = p => ({
+          ...p,
+          bild_url:    p.bild    || null,
+          bild2_url:   p.bild2   || null,
+          eisbrecher:  p.bio     || null,
+          fb_link:     p.fb      || "",
+        });
+        this.profiles = res?.ok
+          ? (res.profiles || []).map(mapProfile)
+          : DEMO.map(mapProfile);
         this.applyFilters();
-      } finally {
-        this.loading = false;
-      }
+      } finally { this.loading = false; }
     },
 
     applyFilters() {
@@ -794,287 +851,348 @@ function app() {
         if (this.fRegion && p.region !== this.fRegion) return false;
         if (this.fVerified && !p.verifiziert) return false;
         if (this.fAge) {
-          const [a, b] = this.fAge.split('-').map(Number);
+          const [a,b] = this.fAge.split("-").map(Number);
           if (p.alter < a || p.alter > b) return false;
         }
         return true;
       });
     },
 
-    // ── PROFIL PER TOKEN LADEN (URL-Edit-Link) ──
-    async loadProfileByToken(token) {
-      this.loading = true;
-      this.loadingMsg = 'Profil wird geladen…';
-      try {
-        let profileData;
-        if (CONFIG.DEMO_MODE) {
-          profileData = JSON.parse(localStorage.getItem('ssc_profile'));
-        } else {
-          const res = await API.get('verify', { token });
-          if (res?.success) {
-            profileData = { ...res, token };
-            localStorage.setItem('ssc_token', token);
-            localStorage.setItem('ssc_profile', JSON.stringify(profileData));
-          }
-        }
-        if (profileData) {
-          this.myProfile = profileData;
-          this.view = 'myprofile';
-        } else {
-          this.showToast('❌ Kein Profil mit diesem Link gefunden.');
-          this.view = 'lock';
-        }
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // ── PROFIL ERSTELLEN ──
+    // ════════════════════════════════════════════════════════
+    //  PROFIL ERSTELLEN
+    // ════════════════════════════════════════════════════════
     next1() {
-      if (!this.form.name.trim())                 { this.err = 'Bitte gib deinen Vornamen ein.'; return; }
-      if (!this.form.age || this.form.age < 18)   { this.err = 'Du musst mindestens 18 Jahre alt sein.'; return; }
-      if (!this.form.region)                       { this.err = 'Bitte wähle deine Region.'; return; }
-      this.err = ''; this.step = 2;
+      if (!this.form.name.trim() || this.form.name.trim().length < 2) { this.err="Vorname zu kurz."; return; }
+      if (!this.form.age || parseInt(this.form.age) < 18)             { this.err="Mindestalter 18."; return; }
+      if (!this.form.region)                                           { this.err="Bitte Region wählen."; return; }
+      this.err=""; this.step=2;
     },
     next2() {
-      if (!this.form.fb.includes('facebook.com')) { this.err = 'Bitte einen gültigen Facebook-Link eingeben.'; return; }
-      this.err = ''; this.step = 3;
+      if (!this.form.fb.includes("facebook.com")) { this.err="Kein gültiger Facebook-Link."; return; }
+      this.err=""; this.step=3;
     },
-
     async submitProfile() {
-      if (!this.form.consent) { this.err = 'Bitte bestätige die Einwilligung.'; return; }
-      this.loading = true;
-      this.loadingMsg = 'Profil wird gespeichert…';
+      if (!this.form.consent) { this.err="Bitte Einwilligung bestätigen."; return; }
+      this.loading=true; this.loadingMsg="Profil wird gespeichert…";
       try {
-        if (CONFIG.DEMO_MODE) {
-          // Demo: lokal simulieren
-          const token = 'ssc-' + Math.random().toString(36).substr(2,10) + '-' + Date.now().toString(36);
-          const p = { vorname:this.form.name, alter:parseInt(this.form.age), region:this.form.region,
-                      fb_link:this.form.fb, bild_url:this.form.img, eisbrecher:this.form.bio,
-                      token, status:'Neu' };
-          localStorage.setItem('ssc_token', token);
-          localStorage.setItem('ssc_profile', JSON.stringify(p));
+        // Bild-URLs: erstes Bild = Hauptbild, zweites = Zusatzbild
+        const bild1 = this.form.bilder[0]?.url || this.form.bild || "";
+        const bild2 = this.form.bilder[1]?.url || "";
+
+        const res = await api({
+          a:"r", vorname:this.form.name.trim(), alter:parseInt(this.form.age),
+          region:this.form.region, fb:this.form.fb.trim(),
+          bild: bild1, bild2: bild2,
+          bio:this.form.bio||"", dsgvo:"true"
+        });
+        if (res?.ok) {
+          const p = {
+            vorname: this.form.name, alter: parseInt(this.form.age),
+            region: this.form.region, fb: this.form.fb,
+            bild: bild1, bild2: bild2, bio: this.form.bio, token: res.token,
+            bild_url: bild1 || null,
+            eisbrecher: this.form.bio || null,
+            fb_link: this.form.fb,
+          };
+          localStorage.setItem("ssc_token", res.token);
+          localStorage.setItem("ssc_profile", JSON.stringify(p));
           this.myProfile = p;
-          this.adminQueue.push({id:Date.now(),vorname:p.vorname,alter:p.alter,region:p.region,
-                                 fb_link:p.fb_link,eisbrecher:p.eisbrecher,timestamp:new Date().toISOString()});
-          this.magic = window.location.origin + window.location.pathname + '?edit=' + token;
-          this.view = 'success';
+          this.magic = window.location.origin + window.location.pathname + "?edit=" + res.token;
+          this.view = "success";
+        } else if (res?.code === 409) {
+          this.err = "Du hast bereits ein Profil mit diesem Facebook-Link.";
         } else {
-          // Echtes Backend
-          const res = await API.post('register', {
-            vorname:    this.form.name,
-            alter:      parseInt(this.form.age),
-            region:     this.form.region,
-            fb_link:    this.form.fb,
-            bild_url:   this.form.img  || '',
-            eisbrecher: this.form.bio  || '',
-            dsgvo:      true,
-          });
-          if (res?.success) {
-            localStorage.setItem('ssc_token', res.token);
-            const p = { vorname:this.form.name, alter:parseInt(this.form.age), region:this.form.region,
-                        fb_link:this.form.fb, bild_url:this.form.img, eisbrecher:this.form.bio,
-                        token:res.token, status:'Neu' };
-            localStorage.setItem('ssc_profile', JSON.stringify(p));
-            this.myProfile = p;
-            this.magic = window.location.origin + window.location.pathname + '?edit=' + res.token;
-            this.view = 'success';
-          } else if (res?.code === 409) {
-            // Duplikat: Profil schon vorhanden
-            this.err = 'Du hast bereits ein Profil mit diesem Facebook-Link.';
-            if (res.existingToken) {
-              this.magic = window.location.origin + window.location.pathname + '?edit=' + res.existingToken;
-              this.err += ' Dein Bearbeitungslink: ' + this.magic;
-            }
-          } else {
-            this.err = res?.error || 'Fehler beim Speichern. Bitte versuche es erneut.';
-            if (CONFIG.DEBUG && res) this.err += ' [Code: ' + (res.code||'?') + ']';
-          }
+          this.err = res?.error || "Fehler beim Speichern.";
         }
-      } finally {
-        this.loading = false;
-      }
+      } finally { this.loading=false; }
     },
 
-    // ── PROFIL BEARBEITEN ──
+    // ════════════════════════════════════════════════════════
+    //  EIGENES PROFIL
+    // ════════════════════════════════════════════════════════
+    async loadByToken(token) {
+      this.loading=true; this.loadingMsg="Profil wird geladen…";
+      try {
+        const res = await api({ a:"v", t:token });
+        if (res?.ok) {
+          // Backend-Felder auf Frontend-Template-Felder mappen
+          const p = {
+            ...res, token,
+            bild_url:   res.bild  || "",
+            bild2_url:  res.bild2 || "",
+            eisbrecher: res.bio   || "",
+            fb_link:    res.fb    || "",
+          };
+          localStorage.setItem("ssc_token", token);
+          localStorage.setItem("ssc_profile", JSON.stringify(p));
+          this.myProfile = p;
+          this.view = "myprofile";
+        } else {
+          this.showToast("❌ Kein Profil mit diesem Link.");
+          this.view = "lock";
+        }
+      } finally { this.loading=false; }
+    },
+
     async saveMyProfile() {
       if (!this.myProfile?.token) return;
-      this.loading = true;
-      this.loadingMsg = 'Wird gespeichert…';
+      this.loading=true; this.loadingMsg="Wird gespeichert…";
       try {
-        if (CONFIG.DEMO_MODE) {
-          localStorage.setItem('ssc_profile', JSON.stringify(this.myProfile));
-          this.showToast('✅ Gespeichert! Wartet auf Admin-Freigabe.');
+        const res = await api({
+          a:"u", t:this.myProfile.token,
+          vorname: this.myProfile.vorname,
+          bild:    this.myProfile.bild_url   || "",
+          bild2:   this.myProfile.bild2_url  || "",
+          bio:     this.myProfile.eisbrecher || "",
+        });
+        if (res?.ok) {
+          localStorage.setItem("ssc_profile", JSON.stringify(this.myProfile));
+          this.showToast("✅ Gespeichert! Wartet auf Admin-Freigabe.");
         } else {
-          const res = await API.post('update', {
-            token:      this.myProfile.token,
-            vorname:    this.myProfile.vorname,
-            bild_url:   this.myProfile.bild_url   || '',
-            eisbrecher: this.myProfile.eisbrecher  || '',
-          });
-          if (res?.success) {
-            localStorage.setItem('ssc_profile', JSON.stringify(this.myProfile));
-            this.showToast('✅ Gespeichert! Wartet auf Admin-Freigabe.');
-          } else {
-            this.showToast('❌ Fehler: ' + (res?.error || 'Unbekannt'));
-          }
+          this.showToast("❌ " + (res?.error||"Fehler."));
         }
-      } finally {
-        this.loading = false;
-      }
+      } finally { this.loading=false; }
     },
 
-    // ── PROFIL LÖSCHEN ──
     async deleteMyProfile() {
-      if (!confirm('Profil wirklich löschen? Das kann nicht rückgängig gemacht werden.')) return;
-      this.loading = true;
-      this.loadingMsg = 'Profil wird gelöscht…';
+      if (!confirm("Profil wirklich löschen?")) return;
+      this.loading=true; this.loadingMsg="Wird gelöscht…";
       try {
-        if (!CONFIG.DEMO_MODE && this.myProfile?.token) {
-          await API.post('delete', { token: this.myProfile.token });
-        }
-        localStorage.removeItem('ssc_token');
-        localStorage.removeItem('ssc_profile');
-        this.myProfile = null;
-        this.view = 'gallery';
-        this.showToast('🗑️ Profil gelöscht.');
-      } finally {
-        this.loading = false;
-      }
+        if (this.myProfile?.token) await api({ a:"d", t:this.myProfile.token });
+        localStorage.removeItem("ssc_token");
+        localStorage.removeItem("ssc_profile");
+        this.myProfile=null; this.view="gallery";
+        this.showToast("🗑️ Profil gelöscht.");
+      } finally { this.loading=false; }
     },
 
-    // ── MAGIC LINK TEILEN ──
-    shareMagicLink() {
-      if (navigator.share) {
-        navigator.share({ title: 'Mein Sachsen Singles Profil', url: this.magic });
-      } else {
-        navigator.clipboard?.writeText(this.magic);
-        this.showToast('📋 Link in Zwischenablage kopiert!');
-      }
-    },
-
-    // ── ADMIN LOGIN ──
+    // ════════════════════════════════════════════════════════
+    //  ADMIN LOGIN
+    //  Zugang: yoursite.com/#admin
+    //  PIN wird SHA-256 gehasht — Klartext verlässt NIE das Gerät!
+    // ════════════════════════════════════════════════════════
     async checkAdmin() {
       if (!this.adminPin.trim()) return;
-      this.loading = true;
-      this.loadingMsg = 'PIN wird geprüft…';
+      this.loading=true; this.loadingMsg="PIN wird geprüft…";
       try {
-        const res = await API.adminLogin(this.adminPin);
-        if (res?.success) {
-          this.isAdmin = true;
-          localStorage.setItem('ssc_admin', '1');
-          this.adminQueue = [...DEMO_QUEUE];
-          this.allAdminProfiles = [...DEMO_PROFILES].map(p=>({...p,status:'Aktiv',timestamp:new Date().toISOString()}));
-          this.currentWeekCode = 'SACHSEN';
-          this.view = 'admin';
-          this.adminTab = 'queue';
+        const hash = await sha256(this.adminPin.trim()); // PIN wird gehasht!
+        this.adminPin = "";                              // PIN sofort aus RAM löschen
+        const res = await api({ a:"ax", s:"login", h:hash });
+        if (res?.ok && res.st) {
+          this.isAdmin   = true;
+          this.adminST   = res.st;  // Session-Token nur im RAM — nie in localStorage!
+          this.view      = "admin";
+          this.adminTab  = "queue";
+          await this.adminLoadQueue();
         } else {
           this.adminErr = true;
-          this.adminPin = '';
         }
-      } finally {
-        this.loading = false;
-      }
+      } finally { this.loading=false; }
     },
 
-    adminLogout() {
-      this.isAdmin = false;
-      localStorage.removeItem('ssc_admin');
-      this.view = 'lock';
+    async adminLogout() {
+      if (this.adminST) await api({ a:"ax", s:"out", st:this.adminST });
+      this.isAdmin=false; this.adminST=null;
+      this.adminQueue=[]; this.adminProfiles=[];
+      this.view="lock";
     },
 
-    // ── ADMIN QUEUE AKTIONEN ──
+    // ════════════════════════════════════════════════════════
+    //  ADMIN AKTIONEN (jede sendet Session-Token mit!)
+    // ════════════════════════════════════════════════════════
+    async adminLoadQueue() {
+      const res = await api({ a:"ax", s:"q", st:this.adminST });
+      this.adminQueue = res?.ok ? (res.queue||[]) : [];
+    },
+
+    async adminLoadAll() {
+      const res = await api({ a:"ax", s:"all", st:this.adminST, f:this.adminFilter });
+      this.adminProfiles = res?.ok ? (res.profiles||[]) : [];
+    },
+
     async adminApprove(i) {
       const p = this.adminQueue[i];
-      if (!CONFIG.DEMO_MODE) {
-        await API.post('update', { token: p.token, status: 'Aktiv' });
+      const res = await api({ a:"ax", s:"ok", st:this.adminST, id:p.id });
+      if (res?.ok) {
+        this.adminQueue.splice(i,1);
+        this.profiles.push({...p, verifiziert:true, status:"Aktiv"});
+        this.applyFilters();
+        this.showToast("✅ Freigegeben!");
+      } else if (res?.code===401) {
+        this.showToast("⏰ Session abgelaufen. Bitte neu einloggen."); this.adminLogout();
       }
-      this.profiles.push({ ...p, verifiziert: true });
-      this.allAdminProfiles.push({ ...p, status: 'Aktiv' });
-      this.adminQueue.splice(i, 1);
-      this.applyFilters();
-      this.showToast('✅ Profil freigegeben!');
     },
 
     async adminBan(i) {
-      if (!confirm('Profil von ' + this.adminQueue[i].vorname + ' sperren?')) return;
       const p = this.adminQueue[i];
-      this.allAdminProfiles.push({ ...p, status: 'Gesperrt' });
-      this.adminQueue.splice(i, 1);
-      this.showToast('🚫 Profil gesperrt.');
+      if (!confirm("Profil von "+p.vorname+" sperren?")) return;
+      const res = await api({ a:"ax", s:"ban", st:this.adminST, id:p.id });
+      if (res?.ok) { this.adminQueue.splice(i,1); this.showToast("🚫 Gesperrt."); }
     },
 
-    async adminDelete(i) {
-      if (!confirm('Profil wirklich löschen?')) return;
-      this.adminQueue.splice(i, 1);
-      this.showToast('🗑️ Profil gelöscht.');
+    async adminRemove(i) {
+      const p = this.adminQueue[i];
+      if (!confirm("Profil wirklich löschen?")) return;
+      const res = await api({ a:"ax", s:"del", st:this.adminST, id:p.id });
+      if (res?.ok) { this.adminQueue.splice(i,1); this.showToast("🗑️ Gelöscht."); }
     },
 
     async adminSetStatus(id, status) {
-      const idx = this.allAdminProfiles.findIndex(p => p.id === id);
-      if (idx > -1) this.allAdminProfiles[idx].status = status;
-      const pidx = this.profiles.findIndex(p => p.id === id);
-      if (status === 'Aktiv' && pidx === -1) {
-        this.profiles.push({ ...this.allAdminProfiles[idx] });
-      } else if (status !== 'Aktiv' && pidx > -1) {
-        this.profiles.splice(pidx, 1);
+      const s   = status==="Aktiv" ? "ok" : "ban";
+      const res = await api({ a:"ax", s, st:this.adminST, id });
+      if (res?.ok) {
+        await this.adminLoadAll();
+        await this.loadProfiles();
+        this.showToast(status==="Aktiv"?"✅ Aktiviert!":"🚫 Gesperrt.");
       }
-      this.applyFilters();
-      this.showToast(status === 'Aktiv' ? '✅ Aktiviert!' : status === 'Gesperrt' ? '🚫 Gesperrt.' : '↩️ Status geändert.');
     },
 
-    async adminDeleteById(id) {
-      if (!confirm('Profil wirklich löschen?')) return;
-      this.allAdminProfiles = this.allAdminProfiles.filter(p => p.id !== id);
-      this.profiles = this.profiles.filter(p => p.id !== id);
-      this.applyFilters();
-      this.showToast('🗑️ Profil gelöscht.');
+    async adminRemoveById(id) {
+      if (!confirm("Profil wirklich löschen?")) return;
+      const res = await api({ a:"ax", s:"del", st:this.adminST, id });
+      if (res?.ok) { await this.adminLoadAll(); await this.loadProfiles(); this.showToast("🗑️ Gelöscht."); }
     },
 
-    async loadAdminProfiles() {}, // Placeholder für echten API-Call
-
-    openFB(url) { window.open(url, '_blank', 'noopener'); },
-
-    changeWeekCode() {
-      const old = this.currentWeekCode;
-      this.currentWeekCode = this.newWeekCode.toUpperCase();
-      this.codeChanged = true;
-      this.newWeekCode = '';
-      // Im echten System: setNewWeekCode() im Apps Script aufrufen
-      this.showToast('🔄 Code gewechselt: ' + this.currentWeekCode);
-      setTimeout(() => this.codeChanged = false, 6000);
+    async adminChangeCode() {
+      if (!this.newCode.trim()) return;
+      this.loading=true;
+      try {
+        const plain = this.newCode.trim().toUpperCase();
+        const hash  = await sha256(plain); // Code wird gehasht!
+        const res   = await api({ a:"ax", s:"code", st:this.adminST, h:hash });
+        if (res?.ok) {
+          this.currentCode = plain;
+          this.codeChanged = true;
+          this.newCode = "";
+          this.showToast("🔄 Code gewechselt: " + plain);
+          setTimeout(()=>this.codeChanged=false, 6000);
+        }
+      } finally { this.loading=false; }
     },
 
-    // ── HELPERS ──
-    openDetail(p) { this.sel = p; this.view = 'detail'; },
+    openFB(url) { window.open(url,"_blank","noopener"); },
+
+    // ════════════════════════════════════════════════════════
+    //  BILD-UPLOAD (imgBB)
+    // ════════════════════════════════════════════════════════
+
+    handleDrop(e) {
+      this.dragover = false;
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+      if (files.length) this.uploadFiles(files);
+    },
+
+    handleFiles(e) {
+      const files = Array.from(e.target.files);
+      this.uploadFiles(files);
+      e.target.value = ""; // Input zurücksetzen für erneuten Upload
+    },
+
+    async uploadFiles(files) {
+      const remaining = 2 - this.form.bilder.length;
+      const toUpload  = files.slice(0, remaining);
+      if (!toUpload.length) return;
+
+      this.uploading  = true;
+      this.uploadErr  = "";
+
+      for (const file of toUpload) {
+        // Größenprüfung (max 5 MB)
+        if (file.size > 5 * 1024 * 1024) {
+          this.uploadErr = "Bild zu groß (max. 5 MB).";
+          continue;
+        }
+
+        try {
+          // Bild im Browser komprimieren (max 1200px breit)
+          const compressed = await this.compressImage(file, 1200, 0.82);
+
+          // Zu imgBB hochladen
+          const formData = new FormData();
+          formData.append("image", compressed.split(",")[1]); // Base64 ohne Prefix
+          formData.append("name", "ssc_" + Date.now());
+
+          const res = await fetch(
+            "https://api.imgbb.com/1/upload?key=" + IMGBB_KEY,
+            { method: "POST", body: formData }
+          );
+          const data = await res.json();
+
+          if (data.success) {
+            this.form.bilder.push({
+              url:   data.data.url,          // Volle Auflösung
+              thumb: data.data.thumb?.url || data.data.url, // Vorschau
+            });
+          } else {
+            this.uploadErr = "Upload fehlgeschlagen. Versuche es erneut.";
+          }
+        } catch(e) {
+          this.uploadErr = "Fehler beim Upload: " + e.message;
+        }
+      }
+      this.uploading = false;
+    },
+
+    // Bild im Browser komprimieren (läuft komplett lokal, kein Server nötig)
+    compressImage(file, maxWidth, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            // Seitenverhältnis beibehalten
+            let w = img.width, h = img.height;
+            if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    },
+
+    removeImage(i) {
+      this.form.bilder.splice(i, 1);
+    },
+
+    // ════════════════════════════════════════════════════════
+    //  HELPERS
+    // ════════════════════════════════════════════════════════
+    openDetail(p)  { this.sel=p; this.view="detail"; },
+    connectFB(p)   {
+      const u = (p.fb||"").split("/").filter(Boolean).pop();
+      window.open("https://m.me/"+u,"_blank","noopener");
+    },
     openCreate() {
-      this.form = {name:'',age:'',region:'',fb:'',img:'',bio:'',consent:false};
-      this.step = 1; this.err = ''; this.view = 'create';
+      this.form={name:"",age:"",region:"",fb:"",bild:"",bio:"",consent:false,bilder:[]};
+      this.uploadErr=""; this.step=1; this.err=""; this.view="create";
     },
-    connectFB(p) {
-      const username = p.fb_link.split('/').filter(Boolean).pop();
-      window.open('https://m.me/' + username, '_blank', 'noopener');
+    shareMagicLink() {
+      if (navigator.share) navigator.share({title:"Mein Sachsen Singles Profil",url:this.magic});
+      else { navigator.clipboard?.writeText(this.magic); this.showToast("📋 Link kopiert!"); }
     },
     logout() {
-      localStorage.removeItem('ssc_code');
-      localStorage.removeItem('ssc_admin');
-      this.isAdmin = false;
-      this.view = 'lock';
+      localStorage.removeItem("ssc_code");
+      this.view="lock";
     },
-    hashColor(id) { return (id * 53) % 360; },
-    formatDate(iso) {
-      if (!iso) return '';
-      const d = new Date(iso);
-      const now = new Date();
-      const diff = Math.floor((now - d) / 60000);
-      if (diff < 1)   return 'Gerade eben';
-      if (diff < 60)  return `vor ${diff} Min.`;
-      if (diff < 1440) return `vor ${Math.floor(diff/60)} Std.`;
-      return d.toLocaleDateString('de-DE');
+    hue(id)   { return (id*53)%360; },
+    ago(iso)  {
+      if (!iso) return "";
+      const d = Math.floor((new Date()-new Date(iso))/60000);
+      if (d<1) return "Gerade eben";
+      if (d<60) return "vor "+d+" Min.";
+      if (d<1440) return "vor "+Math.floor(d/60)+" Std.";
+      return new Date(iso).toLocaleDateString("de-DE");
     },
-    showToast(msg, duration = 2800) {
-      this.toastMsg = msg; this.toast = true;
-      setTimeout(() => this.toast = false, duration);
+    showToast(msg, ms=3000) {
+      this.toastMsg=msg; this.toast=true;
+      setTimeout(()=>this.toast=false, ms);
     },
   };
 }
