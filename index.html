@@ -385,7 +385,7 @@
       <button class="admin-tab" :class="{active:adminTab==='code'}"
         @click="adminTab='code'">🔑 Wochencode</button>
       <button class="admin-tab" :class="{active:adminTab==='stats'}"
-        @click="adminTab='stats';adminLoadAll()">📊 Statistik</button>
+        @click="adminTab='stats';adminLoadQueue();adminLoadAll()">📊 Statistik</button>
     </div>
   </div>
 
@@ -693,6 +693,15 @@ function app() {
           }
         }
 
+        // FB-Link Duplikat prüfen via RPC (sieht alle Status, nicht nur Aktive)
+        const { data: fbCheck } = await this.sb.rpc("check_fb_exists", {
+          p_fb: this.form.fb.trim()
+        });
+        if (fbCheck?.exists) {
+          this.err = "Ein Profil mit diesem Facebook-Link existiert bereits. Falls du deinen Bearbeitungslink verloren hast, melde dich beim Admin.";
+          return;
+        }
+
         const editToken = genToken(40);
         const { error } = await this.sb.from("profiles").insert({
           edit_token:  editToken,
@@ -802,7 +811,7 @@ function app() {
           this.isAdmin=true; this.adminST=data.st;
           this.view="admin"; this.adminTab="queue";
           await this.adminLoadQueue();
-          if (this.adminQueue.length===0) await this.adminLoadAll();
+          await this.adminLoadAll();  // immer laden für Stats
         } else {
           this.adminErr=true;
         }
@@ -825,10 +834,19 @@ function app() {
     },
 
     async adminLoadAll() {
-      const { data } = await this.sb.rpc("admin_get_all",{
-        p_st:this.adminST, p_filter:this.adminFilter
-      });
-      if (data?.ok) this.adminProfiles=data.profiles||[];
+      try {
+        const { data, error } = await this.sb.rpc("admin_get_all",{
+          p_st:this.adminST, p_filter:this.adminFilter
+        });
+        if (error) { this.showToast("❌ DB-Fehler: "+error.message); return; }
+        if (data?.ok) {
+          this.adminProfiles = data.profiles || [];
+        } else if (data?.error) {
+          this.showToast("❌ "+data.error);
+        }
+      } catch(e) {
+        this.showToast("❌ Netzwerkfehler: "+e.message);
+      }
     },
 
     async adminApprove(p,i) {
