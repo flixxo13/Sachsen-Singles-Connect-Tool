@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sachsen Singles Connect</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js" defer></script>
+</head>
+<body x-data="app()" x-init="init()">
+
+<!-- Loading -->
+<div x-show="loading" x-cloak class="loading-overlay">
+  <div class="spinner"></div>
+  <span x-text="loadingMsg"></span>
+</div>
+
+<!-- Toast -->
+<div x-show="toast" x-cloak class="toast" x-text="toastMsg"></div>
+
+<!-- ═══════════════════════════════════════
+     LOCK SCREEN
+     ═══════════════════════════════════════ -->
+<div x-show="view==='lock'" x-cloak class="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">
+      <div class="lock-logo-icon">♦</div>
+      <div>
+        <div class="lock-logo-text">Sachsen Singles<br>Connect</div>
+        <div class="lock-logo-sub">Exklusiv für die Gruppe</div>
+      </div>
+    </div>
+    <div class="lock-diamond">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <h2 class="serif" style="font-size:1.4rem;margin-bottom:.25rem;">Willkommen 👋</h2>
+    <p style="color:var(--gray5);font-size:.85rem;margin-bottom:1.4rem;">
+      Gib den Wochencode aus der Gruppe ein um loszulegen.
+    </p>
+    <div class="fgroup">
+      <label class="flabel">Wochencode</label>
+      <input class="finput" type="text" x-model="code" placeholder="z.B. SACHSEN"
+        :class="{shake: lockErr}" @animationend="lockErr=false"
+        @keydown.enter="checkCode()" autocomplete="off" autocapitalize="characters"
+        style="text-transform:uppercase;letter-spacing:.08em;font-weight:600;"/>
+    </div>
+    <p x-show="lockErr" style="color:var(--red);font-size:.82rem;margin-bottom:.75rem;">
+      Falscher Code. Schau in der Gruppe nach! 🔒
+    </p>
+    <button class="btn btn-green btn-full" @click="checkCode()" :disabled="loading||!code.trim()">
+      Einloggen →
+    </button>
+    <p style="text-align:center;margin-top:1.2rem;font-size:.78rem;color:var(--gray5);">
+      Noch kein Profil? Erst Code eingeben, dann oben <strong>+ Profil</strong> klicken. 😊
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     GALERIE
+     ═══════════════════════════════════════ -->
+<div x-show="view==='gallery'" x-cloak class="fade">
+
+  <div class="gallery-header">
+    <div class="gallery-header-inner">
+      <span class="header-logo">♦ Sachsen Singles</span>
+      <div class="header-actions">
+        <button x-show="myProfile" class="btn btn-ghost btn-sm" @click="view='myprofile'">Mein Profil</button>
+        <button class="btn btn-green btn-sm" @click="openCreate()">+ Profil</button>
+        <button class="btn btn-ghost btn-sm" @click="logout()" title="Ausloggen">🔒</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-bar-inner">
+      <button class="filter-chip" :class="{active:!fRegion&&!fVerified}"
+        @click="fRegion='';fVerified=false;applyFilters()">Alle</button>
+      <template x-for="r in regions" :key="r">
+        <button class="filter-chip" :class="{active:fRegion===r}"
+          @click="fRegion=(fRegion===r?'':r);applyFilters()" x-text="r"></button>
+      </template>
+    </div>
+  </div>
+
+  <!-- Admin-Banner -->
+  <div x-show="isAdmin&&adminQueue.length>0" class="container" style="padding-top:.75rem;">
+    <div class="queue-banner" @click="view='admin';adminTab='queue'">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <span style="font-size:1.2rem;">🛡️</span>
+        <div>
+          <div style="font-weight:700;font-size:.9rem;">Admin-Panel</div>
+          <div style="font-size:.75rem;color:#aaa;" x-text="adminQueue.length+' neue Profile warten'"></div>
+        </div>
+      </div>
+      <span style="color:var(--gold);font-weight:700;">→</span>
+    </div>
+  </div>
+
+  <div class="gallery-grid">
+    <template x-if="filtered.length===0&&!loading">
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <p>Keine Profile gefunden.</p>
+      </div>
+    </template>
+    <template x-for="p in filtered" :key="p.id">
+      <div class="card pcard" @click="openDetail(p)" style="animation:cardFade .4s ease;">
+        <div class="pcard-img">
+          <div x-show="!p.bild_url" class="pcard-avatar"
+            :style="`background:hsl(${hue(p.id)},38%,88%);color:hsl(${hue(p.id)},45%,30%)`"
+            x-text="p.vorname.charAt(0)"></div>
+          <img x-show="p.bild_url" :src="p.bild_url" @error="p.bild_url=null" loading="lazy"/>
+          <div x-show="p.bild2_url" class="pcard-badge-2">+1 📷</div>
+        </div>
+        <div class="pcard-info">
+          <div class="pcard-name" x-text="p.vorname"></div>
+          <div class="pcard-meta" x-text="p.alter_jahre+' Jahre'"></div>
+          <div class="pcard-region">📍 <span x-text="p.region"></span></div>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DETAIL
+     ═══════════════════════════════════════ -->
+<div x-show="view==='detail'&&sel" x-cloak class="fade">
+  <div class="detail-header">
+    <button class="btn btn-ghost btn-sm" @click="view='gallery';sel=null">← Zurück</button>
+    <span class="serif" style="font-weight:700;font-size:1.05rem;" x-text="sel?.vorname"></span>
+  </div>
+  <div class="detail-content" x-show="sel">
+    <div x-show="!sel?.bild_url" class="detail-avatar"
+      :style="`background:hsl(${hue(sel?.id)},38%,88%);color:hsl(${hue(sel?.id)},45%,30%)`"
+      x-text="sel?.vorname?.charAt(0)"></div>
+    <img x-show="sel?.bild_url" class="detail-img" :src="sel?.bild_url" :alt="sel?.vorname" @error="sel.bild_url=null"/>
+    <img x-show="sel?.bild2_url" class="detail-img" :src="sel?.bild2_url" :alt="sel?.vorname" @error="sel.bild2_url=null" style="margin-top:.6rem;"/>
+
+    <div class="detail-name" x-text="sel?.vorname"></div>
+    <div class="detail-tags">
+      <span class="detail-tag" x-text="sel?.alter_jahre+' Jahre'"></span>
+      <span class="detail-tag">📍 <span x-text="sel?.region"></span></span>
+    </div>
+    <p x-show="sel?.bio" class="detail-bio" x-text='"» "+sel?.bio+" «"'></p>
+
+    <button class="btn btn-green btn-full" @click="openFB(sel?.fb_link)" style="margin-bottom:.6rem;">
+      💬 Auf Facebook anschreiben
+    </button>
+    <button class="btn btn-ghost btn-full" @click="view='gallery';sel=null">← Zurück zur Galerie</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PROFIL ERSTELLEN (Wizard)
+     ═══════════════════════════════════════ -->
+<div x-show="view==='create'" x-cloak class="fade">
+  <div class="wizard-header">
+    <button class="btn btn-ghost btn-sm" @click="view=unlocked?'gallery':'lock'">← Zurück</button>
+    <div class="step-dots" style="flex:1;max-width:120px;margin-left:.5rem;">
+      <div class="step-dot" :class="{active:step===1,done:step>1}"></div>
+      <div class="step-dot" :class="{active:step===2,done:step>2}"></div>
+      <div class="step-dot" :class="{active:step===3}"></div>
+    </div>
+  </div>
+
+  <div class="wizard-body">
+    <!-- Step 1 -->
+    <div x-show="step===1">
+      <div class="wizard-title">Erzähl von dir 😊</div>
+      <div class="wizard-sub">Schritt 1 von 3 — Grundangaben</div>
+      <div class="fgroup">
+        <label class="flabel">Vorname *</label>
+        <input class="finput" x-model="form.name" placeholder="Dein Vorname" maxlength="50"/>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Alter *</label>
+        <input class="finput" type="number" x-model="form.age" placeholder="z.B. 28" min="18" max="99"/>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Region *</label>
+        <select class="fsel" x-model="form.region">
+          <option value="">Region wählen…</option>
+          <template x-for="r in regions" :key="r">
+            <option :value="r" x-text="r"></option>
+          </template>
+        </select>
+      </div>
+      <p x-show="err" class="err-msg" x-text="err"></p>
+      <button class="btn btn-green btn-full" @click="next1()">Weiter →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div x-show="step===2">
+      <div class="wizard-title">Fotos & Facebook 📸</div>
+      <div class="wizard-sub">Schritt 2 von 3 — Optional, aber empfohlen</div>
+
+      <div class="fgroup">
+        <label class="flabel">Fotos (max. 2 Bilder)</label>
+        <div x-show="form.bilder.length < 2" class="upload-zone"
+          :class="{'drag': dragover}"
+          @click="$refs.fileInput.click()"
+          @dragover.prevent="dragover=true"
+          @dragleave="dragover=false"
+          @drop.prevent="handleDrop($event)">
+          <input type="file" x-ref="fileInput" accept="image/*" multiple
+            style="display:none" @change="handleFiles($event)"/>
+          <div x-show="!uploading">
+            <div class="upload-icon">📸</div>
+            <div class="upload-title">Foto auswählen oder hierher ziehen</div>
+            <div class="upload-hint">JPG/PNG · max. 5 MB pro Bild</div>
+          </div>
+          <div x-show="uploading" style="display:flex;flex-direction:column;align-items:center;gap:.5rem;">
+            <div class="spinner"></div>
+            <span style="font-size:.82rem;color:var(--gray7);">Wird hochgeladen…</span>
+          </div>
+        </div>
+        <div x-show="form.bilder.length>0" class="img-preview-grid">
+          <template x-for="(img,i) in form.bilder" :key="i">
+            <div class="img-thumb">
+              <img :src="img.url"/>
+              <button class="img-thumb-del" @click.prevent="removeImage(i)">✕</button>
+              <div x-show="i===0" class="img-thumb-label">HAUPT</div>
+            </div>
+          </template>
+          <button x-show="form.bilder.length===1" class="img-add-btn" @click="$refs.fileInput.click()">
+            <span>+</span>2. Foto
+          </button>
+        </div>
+        <p x-show="uploadErr" style="color:var(--red);font-size:.78rem;margin-top:.4rem;" x-text="uploadErr"></p>
+      </div>
+
+      <div class="fgroup">
+        <label class="flabel">Facebook-Link *</label>
+        <input class="finput" type="url" x-model="form.fb" placeholder="https://facebook.com/deinname"/>
+
+        <!-- Hilfe: Wo finde ich meinen Facebook-Link? -->
+        <div x-data="{open:false}" style="margin-top:.5rem;">
+          <button type="button" @click="open=!open"
+            style="background:none;border:none;padding:0;font-family:var(--sans);font-size:.8rem;color:var(--g);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.3rem;">
+            <span x-text="open ? '▲' : '▼'"></span>
+            Wo finde ich meinen Facebook-Link?
+          </button>
+
+          <div x-show="open" x-transition style="margin-top:.75rem;display:flex;flex-direction:column;gap:.5rem;">
+
+            <!-- Schritt 1 -->
+            <div style="display:flex;gap:.75rem;align-items:flex-start;background:#f8f8f8;border-radius:10px;padding:.75rem;">
+              <div style="background:var(--g);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;">1</div>
+              <div>
+                <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem;">Facebook App öffnen</div>
+                <div style="font-size:.78rem;color:var(--gray7);line-height:1.5;">Tippe oben rechts auf dein <strong>Profilbild</strong> (das runde Symbol in der Navigationsleiste).</div>
+                <div style="margin-top:.5rem;background:#fff;border-radius:8px;padding:.5rem .75rem;border:1px solid #e0e0e0;display:flex;align-items:center;gap:.5rem;">
+                  <span style="font-size:1.4rem;">👤</span>
+                  <span style="font-size:.75rem;color:var(--gray7);">Profilbild → oben rechts in der App-Leiste</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Schritt 2 -->
+            <div style="display:flex;gap:.75rem;align-items:flex-start;background:#f8f8f8;border-radius:10px;padding:.75rem;">
+              <div style="background:var(--g);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;">2</div>
+              <div>
+                <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem;">Auf die 3 Punkte tippen</div>
+                <div style="font-size:.78rem;color:var(--gray7);line-height:1.5;">Auf deiner Profilseite oben rechts auf <strong>···</strong> tippen (neben dem Stift-Symbol).</div>
+                <div style="margin-top:.5rem;background:#fff;border-radius:8px;padding:.5rem .75rem;border:1px solid #e0e0e0;display:flex;align-items:center;gap:.5rem;">
+                  <span style="font-size:1.4rem;letter-spacing:-.1em;">•••</span>
+                  <span style="font-size:.75rem;color:var(--gray7);">3 Punkte → oben rechts auf der Profilseite</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Schritt 3 -->
+            <div style="display:flex;gap:.75rem;align-items:flex-start;background:#f8f8f8;border-radius:10px;padding:.75rem;">
+              <div style="background:var(--g);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;">3</div>
+              <div style="flex:1;">
+                <div style="font-weight:600;font-size:.85rem;margin-bottom:.2rem;">Ganz nach unten scrollen → "Link kopieren"</div>
+                <div style="font-size:.78rem;color:var(--gray7);line-height:1.5;">Im Menü ganz nach unten scrollen bis <strong>„Link zu deinem Profil"</strong> erscheint. Dort auf <strong>„Link kopieren"</strong> tippen.</div>
+                <div style="margin-top:.5rem;background:#fff;border-radius:8px;padding:.5rem .75rem;border:1px solid #e0e0e0;">
+                  <div style="font-size:.72rem;color:var(--gray5);margin-bottom:.3rem;">Das Menü zeigt u.a.:</div>
+                  <div style="font-size:.75rem;color:var(--gray7);line-height:1.8;">
+                    🔒 Privacy Center<br>
+                    🔍 Suchen<br>
+                    ↗️ Profil teilen<br>
+                    <strong style="color:var(--g);">🔗 Link zu deinem Profil ← hier!</strong><br>
+                    <span style="background:var(--g-light);color:var(--g);padding:2px 8px;border-radius:4px;font-weight:600;">Link kopieren</span>
+                  </div>
+                </div>
+                <div style="margin-top:.5rem;font-size:.75rem;color:var(--gray7);">
+                  Dein Link sieht so aus:<br>
+                  <code style="background:#eee;padding:2px 6px;border-radius:4px;font-size:.72rem;">https://www.facebook.com/dein.name</code>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">Über mich (optional)</label>
+        <textarea class="finput" x-model="form.bio" rows="3"
+          placeholder="Was liebst du an Sachsen am meisten?" maxlength="300"></textarea>
+      </div>
+      <p x-show="err" class="err-msg" x-text="err"></p>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn btn-ghost" @click="step=1;err=''">← Zurück</button>
+        <button class="btn btn-green" style="flex:1;" @click="next2()">Weiter →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div x-show="step===3">
+      <div class="wizard-title">Fast fertig! 🎉</div>
+      <div class="wizard-sub">Schritt 3 von 3 — Einwilligung</div>
+      <div style="background:var(--gray0);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1.2rem;font-size:.83rem;color:var(--gray7);line-height:1.6;">
+        Dein Profil wird gespeichert und vom Admin geprüft.
+        Nur Mitglieder der Gruppe können Profile sehen.
+        Du kannst dein Profil jederzeit löschen.
+      </div>
+      <label class="checkbox-row" style="margin-bottom:1.2rem;">
+        <input type="checkbox" x-model="form.consent"/>
+        <span>Ich stimme der Speicherung meiner Daten zu und akzeptiere die Nutzungsbedingungen. (DSGVO) *</span>
+      </label>
+      <p x-show="err" class="err-msg" x-text="err"></p>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn btn-ghost" @click="step=2;err=''">← Zurück</button>
+        <button class="btn btn-gold" style="flex:1;" @click="submitProfile()" :disabled="loading||!form.consent">
+          Profil einreichen ✓
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SUCCESS
+     ═══════════════════════════════════════ -->
+<div x-show="view==='success'" x-cloak class="success-screen">
+  <div class="success-card">
+    <div class="success-icon">🎊</div>
+    <h2 class="serif">Profil eingereicht!</h2>
+    <p style="color:var(--gray5);font-size:.88rem;margin:.75rem 0 1.2rem;line-height:1.6;">
+      Dein Profil wird geprüft und dann freigeschaltet.<br>
+      <strong>Speichere diesen Link</strong> — damit kannst du dein Profil später bearbeiten:
+    </p>
+    <div class="magic-link-box" x-text="magic"></div>
+    <div style="display:flex;gap:.5rem;flex-direction:column;">
+      <button class="btn btn-green" @click="shareMagicLink()">📤 Link teilen / kopieren</button>
+      <button class="btn btn-ghost" @click="view='gallery';loadProfiles()">Zur Galerie →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     EIGENES PROFIL
+     ═══════════════════════════════════════ -->
+<div x-show="view==='myprofile'" x-cloak class="fade">
+  <div class="myprofile-header">
+    <button class="btn btn-ghost btn-sm" @click="view='gallery'">← Zurück</button>
+    <span class="serif" style="font-weight:700;">Mein Profil</span>
+  </div>
+  <div class="myprofile-body" x-show="myProfile">
+    <div class="myprofile-status" :class="myProfile?.status" x-show="myProfile?.status">
+      <span x-text="myProfile?.status==='Aktiv'?'✅ Profil ist sichtbar':myProfile?.status==='Neu'?'⏳ Wartet auf Freigabe':'🚫 Gesperrt'"></span>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Vorname</label>
+      <input class="finput" x-model="myProfile.vorname"/>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Hauptbild-URL</label>
+      <input class="finput" type="url" x-model="myProfile.bild_url" placeholder="https://…"/>
+      <img x-show="myProfile.bild_url" :src="myProfile.bild_url" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:.4rem;" @error="myProfile.bild_url=null"/>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">2. Foto-URL (optional)</label>
+      <input class="finput" type="url" x-model="myProfile.bild2_url" placeholder="https://…"/>
+      <img x-show="myProfile.bild2_url" :src="myProfile.bild2_url" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:.4rem;" @error="myProfile.bild2_url=null"/>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Über mich</label>
+      <textarea class="finput" x-model="myProfile.bio" rows="3" maxlength="300"></textarea>
+    </div>
+    <div style="display:flex;gap:.5rem;flex-direction:column;">
+      <button class="btn btn-green" @click="saveMyProfile()" :disabled="loading">Speichern ✓</button>
+      <button class="btn btn-danger" @click="deleteMyProfile()">Profil löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ADMIN LOGIN  (via /#admin)
+     ═══════════════════════════════════════ -->
+<div x-show="view==='adminlogin'" x-cloak class="admin-login-screen">
+  <div class="admin-login-card">
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div style="font-size:2rem;margin-bottom:.5rem;">🛡️</div>
+      <h2 class="serif" style="color:#fff;font-size:1.5rem;">Admin-Bereich</h2>
+      <p style="color:#777;font-size:.82rem;margin-top:.3rem;">Nur für den Gruppenadmin</p>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Admin-PIN</label>
+      <input class="finput" type="password" x-model="adminPin"
+        :class="{shake:adminErr}" @animationend="adminErr=false"
+        @keydown.enter="checkAdmin()" placeholder="••••••••"/>
+    </div>
+    <p x-show="adminErr" style="color:var(--red);font-size:.8rem;margin-bottom:.75rem;">Falscher PIN.</p>
+    <button class="btn btn-green btn-full" @click="checkAdmin()" :disabled="loading">Einloggen →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ADMIN PANEL
+     ═══════════════════════════════════════ -->
+<div x-show="view==='admin'" x-cloak class="fade">
+  <div class="admin-nav">
+    <div class="admin-nav-inner">
+      <div style="display:flex;align-items:center;gap:.6rem;">
+        <span>🛡️</span>
+        <div>
+          <div style="font-weight:700;font-size:.9rem;color:#fff;">Admin-Panel</div>
+          <div style="font-size:.72rem;color:#666;">Sachsen Singles Connect</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.4rem;align-items:center;">
+        <span x-show="adminQueue.length>0"
+          style="background:var(--red);color:#fff;border-radius:999px;padding:2px 8px;font-size:.72rem;font-weight:700;"
+          x-text="adminQueue.length+' neu'"></span>
+        <button class="btn btn-ghost btn-sm" style="color:#ccc;border-color:#555;" @click="adminLogout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <div class="admin-tabs-inner">
+      <button class="admin-tab" :class="{active:adminTab==='queue'}"
+        @click="adminTab='queue';adminLoadQueue()">
+        📋 Queue
+        <span x-show="adminQueue.length>0"
+          style="background:var(--red);color:#fff;border-radius:999px;padding:1px 6px;font-size:.68rem;margin-left:.25rem;"
+          x-text="adminQueue.length"></span>
+      </button>
+      <button class="admin-tab" :class="{active:adminTab==='alle'}"
+        @click="adminTab='alle';adminLoadAll()">👥 Alle Profile</button>
+      <button class="admin-tab" :class="{active:adminTab==='code'}"
+        @click="adminTab='code'">🔑 Wochencode</button>
+      <button class="admin-tab" :class="{active:adminTab==='stats'}"
+        @click="adminTab='stats';adminLoadQueue();adminLoadAll()">📊 Statistik</button>
+    </div>
+  </div>
+
+  <!-- Queue -->
+  <div class="admin-body" x-show="adminTab==='queue'">
+    <div x-show="adminQueue.length===0&&!loading"
+      style="text-align:center;color:#888;padding:3rem 1rem;">
+      ✅ Keine neuen Einreichungen.
+    </div>
+    <template x-for="(p,i) in adminQueue" :key="p.id">
+      <div class="q-card">
+        <div class="q-card-header">
+          <div>
+            <div class="q-card-name" x-text="p.vorname"></div>
+            <div class="q-card-meta" x-text="p.alter_jahre+' J. · '+p.region"></div>
+          </div>
+          <img x-show="p.bild_url" :src="p.bild_url"
+            style="width:52px;height:52px;border-radius:8px;object-fit:cover;"/>
+        </div>
+        <div x-show="p.bio" class="q-bio" x-text="'» '+p.bio+' «'"></div>
+        <a :href="p.fb_link" target="_blank" rel="noopener"
+          style="font-size:.75rem;color:var(--g);display:block;margin-bottom:.7rem;word-break:break-all;"
+          x-text="p.fb_link"></a>
+        <div class="q-card-actions">
+          <button class="q-btn q-btn-ok"  @click="adminApprove(p,i)">✅ Freigeben</button>
+          <button class="q-btn q-btn-ban" @click="adminBan(p,i)">🚫 Sperren</button>
+          <button class="q-btn q-btn-del" @click="adminRemove(p,i)">🗑️ Löschen</button>
+          <button class="q-btn" style="background:#e0f0ff;color:#1a5fa8;" @click="copyEditLink(p.edit_token)">🔗 Link</button>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Alle Profile -->
+  <div class="admin-body" x-show="adminTab==='alle'">
+    <select class="fsel" x-model="adminFilter" @change="adminLoadAll()"
+      style="margin-bottom:1rem;background:#1a1a1a;color:#fff;border-color:#444;">
+      <option value="">Alle Status</option>
+      <option>Neu</option><option>Aktiv</option><option>Gesperrt</option>
+    </select>
+    <template x-for="(p,i) in adminProfiles" :key="p.id">
+      <div class="q-card">
+        <div class="q-card-header">
+          <div>
+            <div class="q-card-name" x-text="p.vorname"></div>
+            <div class="q-card-meta" x-text="p.alter_jahre+' J. · '+p.region"></div>
+          </div>
+          <span class="status-badge" :class="'status-'+p.status" x-text="p.status"></span>
+        </div>
+        <div class="q-card-actions">
+          <button x-show="p.status!=='Aktiv'"    class="q-btn q-btn-ok"  @click="adminSetStatus(p,'Aktiv',i)">✅ Aktivieren</button>
+          <button x-show="p.status!=='Gesperrt'" class="q-btn q-btn-ban" @click="adminSetStatus(p,'Gesperrt',i)">🚫 Sperren</button>
+          <button class="q-btn q-btn-del" @click="adminRemoveById(p,i)">🗑️</button>
+          <button class="q-btn" style="background:#e0f0ff;color:#1a5fa8;" @click="copyEditLink(p.edit_token)">🔗 Link</button>
+        </div>
+      </div>
+    </template>
+    <div x-show="adminProfiles.length===0&&!loading"
+      style="text-align:center;color:#888;padding:3rem 1rem;">Keine Profile gefunden.</div>
+  </div>
+
+  <!-- Wochencode -->
+  <div class="admin-body" x-show="adminTab==='code'">
+    <div class="code-panel">
+      <h3 class="serif" style="font-size:1.2rem;margin-bottom:.3rem;">Wochencode wechseln</h3>
+      <p style="font-size:.83rem;color:var(--gray5);margin-bottom:1rem;line-height:1.5;">
+        Der alte Code bleibt 24 Stunden gültig (Dual-Code). Teile den neuen Code danach mit der Gruppe.
+      </p>
+      <div class="fgroup">
+        <label class="flabel">Neuer Wochencode</label>
+        <input class="finput" x-model="newCode" placeholder="z.B. LEIPZIG2026"
+          autocapitalize="characters" style="text-transform:uppercase;"/>
+      </div>
+      <div x-show="codeChanged"
+        style="background:#d1fae5;border-radius:8px;padding:.7rem 1rem;font-size:.85rem;color:#065f46;margin-bottom:.75rem;font-weight:600;">
+        ✅ Code gewechselt! Teile ihn jetzt mit der Gruppe: <strong x-text="currentCode"></strong>
+      </div>
+      <button class="btn btn-green" @click="adminChangeCode()" :disabled="loading||!newCode.trim()">
+        Code wechseln →
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistik -->
+  <div class="admin-body" x-show="adminTab==='stats'">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-val" x-text="adminProfiles.length||'—'"></div>
+        <div class="stat-lbl">Gesamt</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" x-text="adminProfiles.filter(p=>p.status==='Aktiv').length||'0'"></div>
+        <div class="stat-lbl">Aktiv</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" style="color:var(--gold);" x-text="adminQueue.length||'0'"></div>
+        <div class="stat-lbl">Ausstehend</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" style="color:var(--red);" x-text="adminProfiles.filter(p=>p.status==='Gesperrt').length||'0'"></div>
+        <div class="stat-lbl">Gesperrt</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" @click="adminLoadAll()" style="margin-top:.5rem;">🔄 Aktualisieren</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════ -->
+<script>
+// ── Konfiguration ──────────────────────────────────────────────
+const SUPABASE_URL = "https://kkpbukytgdaxtdtxmzcz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_s3NzpQe1p7-U4HUwfSteXg_ugrUODGB";
+const IMGBB_KEY    = "dd4bb2cdf8010d024366badd1144c0d8";
+
+// ── SHA-256 im Browser ─────────────────────────────────────────
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256",
+    new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+// ── Token Generator ────────────────────────────────────────────
+function genToken(len=40) {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let t = "";
+  for(let i=0;i<len;i++) t += chars[Math.floor(Math.random()*chars.length)];
+  return t;
+}
+
+// ── Farbe aus ID ───────────────────────────────────────────────
+function hueFromId(id) {
+  const s = String(id);
+  let h = 0;
+  for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xFFFFFF;
+  return h%360;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ALPINE APP
+// ═══════════════════════════════════════════════════════════════
+function app() {
+  return {
+    sb: null,
+
+    // Nav
+    view: "lock",
+    unlocked: false,
+
+    // Toast / Loading
+    loading: false, loadingMsg: "Lädt…",
+    toast: false,   toastMsg: "",
+
+    // Lock
+    code: "", lockErr: false,
+
+    // Gallery
+    profiles: [], filtered: [],
+    fRegion: "", fVerified: false,
+    regions: ["Dresden","Leipzig","Chemnitz","Zwickau","Plauen","Görlitz","Erzgebirge","Sonstige"],
+
+    // Detail
+    sel: null,
+
+    // Eigenes Profil
+    myProfile: null,
+    magic: "",
+
+    // Wizard
+    step: 1, err: "",
+    form: { name:"", age:"", region:"", fb:"", bio:"", consent:false, bilder:[] },
+    uploading: false, uploadErr: "", dragover: false,
+
+    // Admin (NUR im RAM)
+    isAdmin: false, adminST: null,
+    adminPin: "", adminErr: false,
+    adminTab: "queue",
+    adminQueue: [], adminProfiles: [],
+    adminFilter: "",
+    newCode: "", currentCode: "", codeChanged: false,
+
+    // ─────────────────────────────────────────────────────────
+    //  INIT
+    // ─────────────────────────────────────────────────────────
+    async init() {
+      // Warten bis Supabase-Library geladen ist
+      await this.$nextTick();
+      this.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      // Admin-URL
+      if (window.location.hash === "#admin") {
+        history.replaceState(null,"",window.location.pathname);
+        this.view = "adminlogin";
+        return;
+      }
+
+      // Edit-Token aus URL
+      const params = new URLSearchParams(window.location.search);
+      const editToken = params.get("edit");
+      if (editToken) {
+        history.replaceState(null,"",window.location.pathname);
+        await this.loadByToken(editToken);
+        return;
+      }
+
+      // Gespeicherter Code
+      const savedCode = localStorage.getItem("ssc_code");
+      if (savedCode) {
+        this.unlocked = true;
+        this.view = "gallery";
+        await this.loadProfiles();
+      }
+
+      // Gespeichertes Profil
+      const savedProf = localStorage.getItem("ssc_profile");
+      if (savedProf) {
+        try { this.myProfile = JSON.parse(savedProf); } catch(e){}
+      }
+    },
+
+    // ─────────────────────────────────────────────────────────
+    //  WOCHENCODE
+    // ─────────────────────────────────────────────────────────
+    async checkCode() {
+      if (!this.code.trim()) return;
+      this.loading=true; this.loadingMsg="Code wird geprüft…";
+      try {
+        const hash = await sha256(this.code.trim().toUpperCase());
+        const { data, error } = await this.sb.rpc("check_week_code", { p_hash: hash });
+        if (error) throw error;
+        if (data?.valid) {
+          localStorage.setItem("ssc_code", this.code.trim().toUpperCase());
+          this.unlocked=true;
+          this.view="gallery";
+          await this.loadProfiles();
+        } else {
+          this.lockErr=true;
+          setTimeout(()=>this.code="", 100);
+        }
+      } catch(e) {
+        this.showToast("Fehler: "+e.message);
+      } finally { this.loading=false; }
+    },
+
+    // ─────────────────────────────────────────────────────────
+    //  PROFILE LADEN
+    // ─────────────────────────────────────────────────────────
+    async loadProfiles() {
+      this.loading=true; this.loadingMsg="Profile werden geladen…";
+      try {
+        const { data, error } = await this.sb
+          .from("profiles")
+          .select("id,vorname,alter_jahre,region,bild_url,bild2_url,bio,verifiziert,fb_link")
+          .eq("status","Aktiv")
+          .order("created_at",{ascending:false});
+        if (error) throw error;
+        this.profiles = data || [];
+        this.applyFilters();
+      } catch(e) {
+        this.showToast("Laden fehlgeschlagen: "+e.message);
+      } finally { this.loading=false; }
+    },
+
+    applyFilters() {
+      this.filtered = this.profiles.filter(p => {
+        if (this.fRegion   && p.region!==this.fRegion) return false;
+        if (this.fVerified && !p.verifiziert)           return false;
+        return true;
+      });
+    },
+
+    // ─────────────────────────────────────────────────────────
+    //  PROFIL ERSTELLEN
+    // ─────────────────────────────────────────────────────────
+    next1() {
+      if (!this.form.name.trim()||this.form.name.trim().length<2) { this.err="Vorname mind. 2 Zeichen."; return; }
+      if (!this.form.age||parseInt(this.form.age)<18)             { this.err="Mindestalter: 18 Jahre."; return; }
+      if (!this.form.region)                                       { this.err="Bitte Region wählen."; return; }
+      this.err=""; this.step=2;
+    },
+    next2() {
+      if (!this.form.fb.includes("facebook.com")) { this.err="Kein gültiger Facebook-Link."; return; }
+      this.err=""; this.step=3;
+    },
+
+    async submitProfile() {
+      if (!this.form.consent) { this.err="Bitte Einwilligung bestätigen."; return; }
+      this.loading=true; this.loadingMsg="Profil wird gespeichert…";
+      try {
+        // IP holen und Rate-Limit prüfen
+        let clientIp = "unknown";
+        try {
+          const ipRes = await fetch("https://api.ipify.org?format=json");
+          const ipData = await ipRes.json();
+          clientIp = ipData.ip || "unknown";
+        } catch(e) { /* IP nicht verfügbar — kein Block */ }
+
+        if (clientIp !== "unknown") {
+          const { data: rateData } = await this.sb.rpc("check_ip_rate", { p_ip: clientIp });
+          if (rateData && !rateData.allowed) {
+            this.err = "Du hast heute bereits 2 Profile angelegt. Bitte morgen erneut versuchen.";
+            return;
+          }
+        }
+
+        // FB-Link Duplikat prüfen via RPC (sieht alle Status, nicht nur Aktive)
+        const { data: fbCheck } = await this.sb.rpc("check_fb_exists", {
+          p_fb: this.form.fb.trim()
+        });
+        if (fbCheck?.exists) {
+          this.err = "Ein Profil mit diesem Facebook-Link existiert bereits. Falls du deinen Bearbeitungslink verloren hast, melde dich beim Admin.";
+          return;
+        }
+
+        const editToken = genToken(40);
+        const { error } = await this.sb.from("profiles").insert({
+          edit_token:  editToken,
+          vorname:     this.form.name.trim(),
+          alter_jahre: parseInt(this.form.age),
+          region:      this.form.region,
+          fb_link:     this.form.fb.trim(),
+          bild_url:    this.form.bilder[0]?.url || null,
+          bild2_url:   this.form.bilder[1]?.url || null,
+          bio:         this.form.bio.trim() || null,
+          dsgvo:       true,
+          ip_address:  clientIp
+        });
+        if (error) {
+          if (error.code==="23505") { this.err="Profil existiert bereits."; return; }
+          throw error;
+        }
+        const p = {
+          vorname:     this.form.name,
+          alter_jahre: parseInt(this.form.age),
+          region:      this.form.region,
+          fb_link:     this.form.fb,
+          bild_url:    this.form.bilder[0]?.url || null,
+          bild2_url:   this.form.bilder[1]?.url || null,
+          bio:         this.form.bio,
+          token:       editToken,
+          status:      "Neu"
+        };
+        localStorage.setItem("ssc_token",   editToken);
+        localStorage.setItem("ssc_profile", JSON.stringify(p));
+        this.myProfile = p;
+        this.magic = window.location.origin+window.location.pathname+"?edit="+editToken;
+        this.view  = "success";
+      } catch(e) {
+        this.err = e.message;
+      } finally { this.loading=false; }
+    },
+
+    // ─────────────────────────────────────────────────────────
+    //  EIGENES PROFIL
+    // ─────────────────────────────────────────────────────────
+    async loadByToken(token) {
+      this.loading=true; this.loadingMsg="Profil wird geladen…";
+      try {
+        const { data } = await this.sb.rpc("get_profile_by_token",{ p_token:token });
+        if (data?.ok) {
+          const p = {...data, token};
+          localStorage.setItem("ssc_token",   token);
+          localStorage.setItem("ssc_profile", JSON.stringify(p));
+          this.myProfile = p;
+          this.unlocked  = true;
+          this.view      = "myprofile";
+          await this.loadProfiles();
+        } else {
+          this.showToast("❌ Kein Profil mit diesem Link.");
+          this.view="lock";
+        }
+      } finally { this.loading=false; }
+    },
+
+    async saveMyProfile() {
+      if (!this.myProfile?.token) return;
+      this.loading=true; this.loadingMsg="Wird gespeichert…";
+      try {
+        const { data } = await this.sb.rpc("update_profile_by_token",{
+          p_token:     this.myProfile.token,
+          p_vorname:   this.myProfile.vorname   || "",
+          p_bild_url:  this.myProfile.bild_url  || null,
+          p_bild2_url: this.myProfile.bild2_url || null,
+          p_bio:       this.myProfile.bio        || null
+        });
+        if (data?.ok) {
+          localStorage.setItem("ssc_profile", JSON.stringify(this.myProfile));
+          this.showToast("✅ Gespeichert! Wartet auf Admin-Freigabe.");
+        } else {
+          this.showToast("❌ "+(data?.error||"Fehler."));
+        }
+      } finally { this.loading=false; }
+    },
+
+    async deleteMyProfile() {
+      if (!confirm("Profil wirklich löschen? Das kann nicht rückgängig gemacht werden.")) return;
+      this.loading=true;
+      try {
+        await this.sb.rpc("delete_profile_by_token",{ p_token:this.myProfile.token });
+        localStorage.removeItem("ssc_token");
+        localStorage.removeItem("ssc_profile");
+        this.myProfile=null;
+        this.view="gallery";
+        this.showToast("🗑️ Profil gelöscht.");
+        await this.loadProfiles();
+      } finally { this.loading=false; }
+    },
+
+    // ─────────────────────────────────────────────────────────
+    //  ADMIN
+    // ─────────────────────────────────────────────────────────
+    async checkAdmin() {
+      if (!this.adminPin.trim()) return;
+      this.loading=true; this.loadingMsg="PIN wird geprüft…";
+      try {
+        const hash = await sha256(this.adminPin.trim());
+        this.adminPin="";
+        const { data, error } = await this.sb.rpc("admin_login",{ p_pin_hash:hash });
+        if (error) throw error;
+        if (data?.ok && data.st) {
+          this.isAdmin=true; this.adminST=data.st;
+          this.view="admin"; this.adminTab="queue";
+          await this.adminLoadQueue();
+          await this.adminLoadAll();  // immer laden für Stats
+        } else {
+          this.adminErr=true;
+        }
+      } catch(e) {
+        this.adminErr=true;
+      } finally { this.loading=false; }
+    },
+
+    async adminLogout() {
+      if (this.adminST) await this.sb.rpc("admin_logout",{ p_st:this.adminST });
+      this.isAdmin=false; this.adminST=null;
+      this.adminQueue=[]; this.adminProfiles=[];
+      this.view="gallery";
+    },
+
+    async adminLoadQueue() {
+      const { data } = await this.sb.rpc("admin_get_queue",{ p_st:this.adminST });
+      if (data?.ok) this.adminQueue=data.queue||[];
+      else this.showToast("Session abgelaufen. Bitte neu einloggen.");
+    },
+
+    async adminLoadAll() {
+      try {
+        const { data, error } = await this.sb.rpc("admin_get_all",{
+          p_st:this.adminST, p_filter:this.adminFilter
+        });
+        if (error) { this.showToast("❌ DB-Fehler: "+error.message); return; }
+        if (data?.ok) {
+          this.adminProfiles = data.profiles || [];
+        } else if (data?.error) {
+          this.showToast("❌ "+data.error);
+        }
+      } catch(e) {
+        this.showToast("❌ Netzwerkfehler: "+e.message);
+      }
+    },
+
+    async adminApprove(p,i) {
+      const { data } = await this.sb.rpc("admin_approve",{ p_st:this.adminST, p_id:p.id });
+      if (data?.ok) {
+        await this.adminLoadQueue();
+        await this.loadProfiles();
+        this.showToast("✅ Freigegeben!");
+      } else this.showToast("❌ "+(data?.error||"Fehler"));
+    },
+
+    async adminBan(p,i) {
+      if (!confirm("Sperren: "+p.vorname+"?")) return;
+      const { data } = await this.sb.rpc("admin_ban",{ p_st:this.adminST, p_id:p.id });
+      if (data?.ok) {
+        await this.adminLoadQueue();
+        this.showToast("🚫 Gesperrt.");
+      }
+    },
+
+    async adminRemove(p,i) {
+      if (!confirm("Löschen: "+p.vorname+"?")) return;
+      const { data } = await this.sb.rpc("admin_delete",{ p_st:this.adminST, p_id:p.id });
+      if (data?.ok) {
+        await this.adminLoadQueue();
+        this.showToast("🗑️ Gelöscht.");
+      }
+    },
+
+    async adminSetStatus(p,status,i) {
+      const fn = status==="Aktiv" ? "admin_approve" : "admin_ban";
+      const { data } = await this.sb.rpc(fn,{ p_st:this.adminST, p_id:p.id });
+      if (data?.ok) {
+        await this.adminLoadAll();
+        await this.loadProfiles();
+        this.showToast("✅ "+status);
+      }
+    },
+
+    async adminRemoveById(p,i) {
+      if (!confirm("Profil löschen?")) return;
+      const { data } = await this.sb.rpc("admin_delete",{ p_st:this.adminST, p_id:p.id });
+      if (data?.ok) {
+        await this.adminLoadAll();
+        await this.loadProfiles();
+        this.showToast("🗑️ Gelöscht.");
+      }
+    },
+
+    async adminChangeCode() {
+      if (!this.newCode.trim()) return;
+      this.loading=true;
+      try {
+        const plain = this.newCode.trim().toUpperCase();
+        const hash  = await sha256(plain);
+        const { data } = await this.sb.rpc("admin_set_code",{ p_st:this.adminST, p_hash:hash });
+        if (data?.ok) {
+          this.currentCode=plain; this.codeChanged=true; this.newCode="";
+          this.showToast("🔄 Neuer Code: "+plain);
+          setTimeout(()=>this.codeChanged=false, 10000);
+        }
+      } finally { this.loading=false; }
+    },
+
+    // ─────────────────────────────────────────────────────────
+    //  BILD UPLOAD (imgBB)
+    // ─────────────────────────────────────────────────────────
+    handleDrop(e) {
+      this.dragover=false;
+      const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith("image/"));
+      if (files.length) this.uploadFiles(files);
+    },
+    handleFiles(e) {
+      this.uploadFiles(Array.from(e.target.files));
+      e.target.value="";
+    },
+    async uploadFiles(files) {
+      const remaining=2-this.form.bilder.length;
+      const toUpload=files.slice(0,remaining);
+      if (!toUpload.length) return;
+      this.uploading=true; this.uploadErr="";
+      for (const file of toUpload) {
+        if (file.size>5*1024*1024) { this.uploadErr="Bild zu groß (max. 5 MB)."; continue; }
+        try {
+          const compressed=await this.compressImage(file,1200,0.82);
+          const fd=new FormData();
+          fd.append("image",compressed.split(",")[1]);
+          fd.append("name","ssc_"+Date.now());
+          const res=await fetch("https://api.imgbb.com/1/upload?key="+IMGBB_KEY,{method:"POST",body:fd});
+          const d=await res.json();
+          if (d.success) this.form.bilder.push({url:d.data.url,thumb:d.data.thumb?.url||d.data.url});
+          else this.uploadErr="Upload fehlgeschlagen. Bitte erneut versuchen.";
+        } catch(e) { this.uploadErr="Fehler: "+e.message; }
+      }
+      this.uploading=false;
+    },
+    compressImage(file,maxW,quality) {
+      return new Promise((res,rej)=>{
+        const reader=new FileReader();
+        reader.onload=e=>{
+          const img=new Image();
+          img.onload=()=>{
+            let w=img.width,h=img.height;
+            if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+            const c=document.createElement("canvas");
+            c.width=w;c.height=h;
+            c.getContext("2d").drawImage(img,0,0,w,h);
+            res(c.toDataURL("image/jpeg",quality));
+          };
+          img.onerror=rej;
+          img.src=e.target.result;
+        };
+        reader.onerror=rej;
+        reader.readAsDataURL(file);
+      });
+    },
+    removeImage(i) { this.form.bilder.splice(i,1); },
+
+    // ─────────────────────────────────────────────────────────
+    //  HELPERS
+    // ─────────────────────────────────────────────────────────
+    openDetail(p)  { this.sel=p; this.view="detail"; },
+    openFB(url)    { if(url) window.open(url,"_blank","noopener"); },
+    openCreate() {
+      // Nur mit Wochencode erlaubt
+      if (!this.unlocked) { this.view="lock"; return; }
+      this.form={name:"",age:"",region:"",fb:"",bio:"",consent:false,bilder:[]};
+      this.uploadErr=""; this.step=1; this.err=""; this.view="create";
+    },
+    logout() {
+      localStorage.removeItem("ssc_code");
+      this.unlocked=false; this.code=""; this.view="lock";
+    },
+    shareMagicLink() {
+      if (navigator.share) {
+        navigator.share({title:"Mein SSC Profil",url:this.magic});
+      } else {
+        navigator.clipboard?.writeText(this.magic);
+        this.showToast("📋 Link kopiert!");
+      }
+    },
+    hue(id)       { return hueFromId(id); },
+    copyEditLink(token) {
+      if (!token) { this.showToast("❌ Kein Token vorhanden."); return; }
+      const link = window.location.origin + window.location.pathname + "?edit=" + token;
+      navigator.clipboard?.writeText(link);
+      this.showToast("📋 Profil-Link kopiert!");
+    },
+    showToast(msg,ms=3500) {
+      this.toastMsg=msg; this.toast=true;
+      setTimeout(()=>this.toast=false,ms);
+    },
+  };
+}
+
+document.addEventListener("alpine:init",()=>Alpine.data("app",app));
+</script>
+</body>
+</html>
